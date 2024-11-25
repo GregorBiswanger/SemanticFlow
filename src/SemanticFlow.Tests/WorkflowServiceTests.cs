@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
+using SemanticFlow.Extensions;
 using SemanticFlow.Interfaces;
 using SemanticFlow.Services;
 using SemanticFlow.Tests.Activities;
@@ -187,5 +188,34 @@ public class WorkflowServiceTests
         // Assert
         firstActivity.Should().BeOfType<CustomerIdentificationActivity>();
         secondActivity.Should().BeOfType<DeliveryTimeEstimationActivity>();
+    }
+
+    [Fact]
+    public void WorkflowService_ShouldCompleteActivityWithoutException()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddKernel();
+        services.AddKernelWorkflow()
+            .StartWith<CustomerIdentificationActivity>()
+            .EndsWith<DeliveryTimeEstimationActivity>();
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var workflowService = serviceProvider.GetRequiredService<WorkflowService>();
+        var kernel = serviceProvider.GetRequiredService<Kernel>();
+        var sessionId = "gregor";
+
+        // Acts
+        var initialActivity = workflowService.GetCurrentActivity(sessionId, kernel);
+        workflowService.CompleteActivity(sessionId, kernel);
+        var currentActivity = workflowService.GetCurrentActivity(sessionId, kernel);
+
+        // Assert
+        initialActivity.Should().NotBeNull();
+        currentActivity.Should().NotBeNull();
+        currentActivity.Should().BeOfType<DeliveryTimeEstimationActivity>();
     }
 }

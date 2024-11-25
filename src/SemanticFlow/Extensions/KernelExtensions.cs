@@ -1,43 +1,34 @@
-﻿using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
 using SemanticFlow.Interfaces;
+using System.Linq.Expressions;
+using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SemanticFlow.Extensions;
 
 public static class KernelExtensions
 {
     /// <summary>
-    /// Registers all methods marked with the <see cref="KernelFunctionAttribute"/> from the provided instance 
+    /// Registers all methods marked with the <see cref="KernelFunctionAttribute"/> from the provided activity 
     /// as functions within the Kernel. These functions are grouped under a plugin, with the plugin's name 
-    /// automatically derived from the instance's type name.
+    /// automatically derived from the activity's type name.
     /// </summary>
     /// <param name="kernel">The <see cref="Kernel"/> instance where the functions will be registered.</param>
-    /// <param name="instance">The instance containing the methods to register as kernel functions.</param>
+    /// <param name="activity">The activity containing the methods to register as kernel functions.</param>
     /// <remarks>
     /// This method enables dynamic registration of methods as AI functions, allowing developers to modularize 
     /// functionality into activities that can be reused across workflows.
     /// </remarks>
-    public static void AddFromActivity(this Kernel kernel, object instance)
+    public static void AddFromActivity(this Kernel kernel, IActivity activity)
     {
-        var pluginName = instance.GetType().Name;
-        if (kernel.Plugins.Any(plugin => plugin.Name == pluginName))
-        {
-            return;
-        }
+        var pluginName = activity.GetType().Name;
+        if (kernel.Plugins.Any(plugin => plugin.Name == pluginName)) return;
 
-        var methods = instance.GetType()
-        .GetMethods(BindingFlags.Public | BindingFlags.Instance)
-        .Where(m => m.GetCustomAttribute<KernelFunctionAttribute>() != null);
-
-        var functions = methods
-            .Select(m =>
-            {
-                var delegateType = typeof(Func<,>).MakeGenericType(m.GetParameters()[0].ParameterType, m.ReturnType);
-                var methodDelegate = Delegate.CreateDelegate(delegateType, instance, m);
-                return kernel.CreateFunctionFromMethod(methodDelegate);
-            })
+        var functions = activity.GetType()
+            .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            .Where(HasKernelFunctionAttribute)
+            .Select(method => kernel.CreateFunctionFromMethod(CreateDelegateForMethod(activity, method)))
             .ToList();
 
         kernel.Plugins.AddFromFunctions(pluginName, functions);
@@ -63,18 +54,30 @@ public static class KernelExtensions
     /// </exception>
     public static IChatCompletionService GetChatCompletionForActivity(this Kernel kernel, IActivity activity)
     {
-        if (activity.PromptExecutionSettings == null || string.IsNullOrEmpty(activity.PromptExecutionSettings.ModelId))
-        {
+        if (IsDefaultModel(activity))
             return kernel.GetRequiredService<IChatCompletionService>();
-        }
-
-        string modelIdPropertyName = nameof(activity.PromptExecutionSettings.ModelId);
 
         var chatCompletionServices = kernel.Services.GetServices<IChatCompletionService>();
-        var chatCompletion = chatCompletionServices
-            .First(service => service.Attributes.TryGetValue(modelIdPropertyName, out var modelId)
-                              && modelId == activity.PromptExecutionSettings.ModelId);
-
-        return chatCompletion;
+        return chatCompletionServices.First(service => MatchesModelId(service, activity));
     }
+
+    private static bool HasKernelFunctionAttribute(MethodInfo method) =>
+        method.GetCustomAttribute<KernelFunctionAttribute>() != null;
+
+    private static Delegate CreateDelegateForMethod(IActivity activity, MethodInfo method)
+    {
+        var parameterTypes = method.GetParameters().Select(p => p.ParameterType).ToArray();
+        var delegateType = parameterTypes.Any()
+            ? Expression.GetFuncType(parameterTypes.Concat(new[] { method.ReturnType }).ToArray())
+            : typeof(Func<>).MakeGenericType(method.ReturnType);
+
+        return Delegate.CreateDelegate(delegateType, activity, method);
+    }
+
+    private static bool IsDefaultModel(IActivity activity) =>
+        activity.PromptExecutionSettings?.ModelId == null;
+
+    private static bool MatchesModelId(IChatCompletionService service, IActivity activity) =>
+        service.Attributes.TryGetValue(nameof(activity.PromptExecutionSettings.ModelId), out var modelId) &&
+        modelId == activity.PromptExecutionSettings.ModelId;
 }
