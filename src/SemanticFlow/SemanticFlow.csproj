@@ -8,7 +8,7 @@
   
   <PropertyGroup>
     <PackageId>SemanticFlow</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>Gregor Biswanger</Authors>
     <Description>Semantic Flow is a powerful state manager designed to orchestrate complex workflows using the Microsoft Semantic Kernel. With Semantic Flow, you can break down intricate AI-driven processes into manageable, self-contained steps, known as Activities, ensuring your AI solution operates efficiently and transparently.</Description>
     <PackageTags>Semantic Kernel, Workflow, State Management, State Machine, Process API, AI, Artificial Intelligence, OpenAI, AI Workflow, Workflow Automation, Prompt Engineering, Artificial Intelligence, Orchestration</PackageTags>
