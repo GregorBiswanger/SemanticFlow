@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 using SemanticFlow.Interfaces;
 
 namespace SemanticFlow.Tests.Activities;
@@ -7,7 +8,11 @@ namespace SemanticFlow.Tests.Activities;
 public class DeliveryTimeEstimationActivity : IActivity
 {
     public string SystemPrompt { get; set; } = "Delivery Time Estimation Prompt";
-    public PromptExecutionSettings PromptExecutionSettings { get; set; }
+
+    public PromptExecutionSettings PromptExecutionSettings { get; set; } = new AzureOpenAIPromptExecutionSettings
+    {
+        FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+    };
 
     [KernelFunction]
     [Description("Estimates the delivery time for a given input.")]
