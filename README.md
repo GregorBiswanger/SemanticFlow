@@ -1,4 +1,4 @@
-[![Semantic Flow Logo](https://github.com/GregorBiswanger/SemanticFlow/raw/main/assets/semantic-flow-logo.png)](https://github.com/GregorBiswanger/SemanticFlow)
+[![Semantic Flow Logo](https://github.com/GregorBiswanger/SemanticFlow/raw/main/assets/semantic-flow-logo-transparent.png)](https://github.com/GregorBiswanger/SemanticFlow)
 
 # Semantic Flow
 
@@ -154,7 +154,7 @@ Contributions are welcome! Feel free to open issues or submit pull requests on G
 
 ## License 📄
 
-Semantic Flow is licensed under the Apache License 2.0. See the [LICENSE](LICENSE.md) file for details.
+Semantic Flow is licensed under the Apache License 2.0. See the [LICENSE](https://raw.githubusercontent.com/GregorBiswanger/SemanticFlow/refs/heads/main/LICENSE.txt) file for details.
 
 ## Acknowledgments 🙌
 
