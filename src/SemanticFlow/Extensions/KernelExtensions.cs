@@ -58,7 +58,14 @@ public static class KernelExtensions
             return kernel.GetRequiredService<IChatCompletionService>();
 
         var chatCompletionServices = kernel.Services.GetServices<IChatCompletionService>();
-        return chatCompletionServices.First(service => MatchesModelId(service, activity));
+        var chatCompletionService = chatCompletionServices.FirstOrDefault(service => MatchesModelId(service, activity));
+
+        if (chatCompletionService == null)
+        {
+            throw new InvalidOperationException("No matching chat completion service found for the specified model ID.");
+        }
+
+        return chatCompletionService;
     }
 
     private static bool HasKernelFunctionAttribute(MethodInfo method) =>
@@ -68,7 +75,7 @@ public static class KernelExtensions
     {
         var parameterTypes = method.GetParameters().Select(p => p.ParameterType).ToArray();
         var delegateType = parameterTypes.Any()
-            ? Expression.GetFuncType(parameterTypes.Concat(new[] { method.ReturnType }).ToArray())
+            ? Expression.GetFuncType(parameterTypes.Concat([method.ReturnType]).ToArray())
             : typeof(Func<>).MakeGenericType(method.ReturnType);
 
         return Delegate.CreateDelegate(delegateType, activity, method);

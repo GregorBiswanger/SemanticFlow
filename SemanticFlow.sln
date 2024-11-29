@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35514.174 d17.12
+VisualStudioVersion = 17.12.35514.174
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticFlow.Tests", "src\SemanticFlow.Tests\SemanticFlow.Tests.csproj", "{F579C9E2-D5CB-4A55-A6D9-343F9E8DADA8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticFlow", "src\SemanticFlow\SemanticFlow.csproj", "{AA540F82-22BA-43FB-A152-91E6B00559A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticFlow.DemoWebApi", "SemanticFlow.DemoWebApi\SemanticFlow.DemoWebApi.csproj", "{A9CC60D4-98AB-419E-931C-C462AA2E61CB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{AA540F82-22BA-43FB-A152-91E6B00559A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA540F82-22BA-43FB-A152-91E6B00559A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA540F82-22BA-43FB-A152-91E6B00559A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9CC60D4-98AB-419E-931C-C462AA2E61CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9CC60D4-98AB-419E-931C-C462AA2E61CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9CC60D4-98AB-419E-931C-C462AA2E61CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9CC60D4-98AB-419E-931C-C462AA2E61CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

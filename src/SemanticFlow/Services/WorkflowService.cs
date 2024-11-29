@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using SemanticFlow.Extensions;
 using SemanticFlow.Interfaces;
+using System;
 
 namespace SemanticFlow.Services;
 
@@ -12,7 +14,7 @@ namespace SemanticFlow.Services;
 /// </summary>
 /// <param name="serviceProvider">The service provider used to resolve registered activities.</param>
 /// <param name="workflowStateService">The service responsible for managing the workflow state.</param>
-public class WorkflowService(IServiceProvider serviceProvider, WorkflowStateService workflowStateService)
+public class WorkflowService(IServiceProvider serviceProvider, WorkflowStateService workflowStateService, ILogger<WorkflowService>? logger)
 {
     /// <summary>
     /// Gets the service that manages the workflow state, allowing access to workflow progress and collected data.
@@ -30,17 +32,21 @@ public class WorkflowService(IServiceProvider serviceProvider, WorkflowStateServ
     /// </returns>
     public IActivity GetCurrentActivity(string id, Kernel kernel)
     {
-        var state = WorkflowState.DataFrom(id);
+        logger?.LogInformation("Fetching current activity for workflow session {WorkflowId}", id);
+
+        var state = workflowStateService.DataFrom(id);
         var registeredActivities = serviceProvider.GetServices<IActivity>().ToList();
 
         if (state.CurrentActivityIndex >= registeredActivities.Count)
         {
+            logger?.LogWarning("Workflow {WorkflowId} is complete. No more activities.", id);
             return null; // Workflow done - Todo: Still need an idea what should happen here
         }
 
         var activity = registeredActivities[state.CurrentActivityIndex];
-
         kernel.AddFromActivity(activity);
+
+        logger?.LogDebug("Returning activity {ActivityName} for workflow session {WorkflowId}", activity.GetType().Name, id);
 
         return activity;
     }
@@ -57,11 +63,23 @@ public class WorkflowService(IServiceProvider serviceProvider, WorkflowStateServ
     /// </returns>
     public IActivity CompleteActivity(string id, object data, Kernel kernel)
     {
-        WorkflowState.UpdateDataContext(id, workflowState =>
+        logger?.LogInformation("Completing activity for workflow session {WorkflowId} with data: {ActivityData}", id, data);
+
+        try
         {
-            workflowState.CollectedData.Add(data);
-            workflowState.CurrentActivityIndex++;
-        });
+            workflowStateService.UpdateDataContext(id, workflowState =>
+            {
+                workflowState.CollectedData.Add(data);
+                workflowState.CurrentActivityIndex++;
+            });
+
+            logger?.LogDebug("Activity completed successfully for workflow session {WorkflowId}. Transitioning to the next activity.", id);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "An error occurred while completing the activity for workflow session {WorkflowId}", id);
+            throw;
+        }
 
         return GetCurrentActivity(id, kernel);
     }
@@ -77,10 +95,22 @@ public class WorkflowService(IServiceProvider serviceProvider, WorkflowStateServ
     /// </returns>
     public IActivity CompleteActivity(string id, Kernel kernel)
     {
-        WorkflowState.UpdateDataContext(id, workflowState =>
+        logger?.LogInformation("Completing activity without additional data for workflow session {WorkflowId}", id);
+
+        try
         {
-            workflowState.CurrentActivityIndex++;
-        });
+            workflowStateService.UpdateDataContext(id, workflowState =>
+            {
+                workflowState.CurrentActivityIndex++;
+            });
+
+            logger?.LogDebug("Activity completed successfully for workflow session {WorkflowId}. Transitioning to the next activity.", id);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "An error occurred while completing the activity without additional data for workflow session {WorkflowId}", id);
+            throw;
+        }
 
         return GetCurrentActivity(id, kernel);
     }

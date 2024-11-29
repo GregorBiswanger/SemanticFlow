@@ -1,4 +1,5 @@
-﻿using SemanticFlow.Models;
+﻿using Microsoft.Extensions.Logging;
+using SemanticFlow.Models;
 
 namespace SemanticFlow.Services;
 
@@ -7,7 +8,7 @@ namespace SemanticFlow.Services;
 /// of state data for specific workflow sessions. This service is responsible for maintaining
 /// the current state of workflows identified by unique session IDs.
 /// </summary>
-public class WorkflowStateService
+public class WorkflowStateService(ILogger<WorkflowStateService>? logger)
 {
     private readonly Dictionary<string, WorkflowState> _states = new();
 
@@ -19,11 +20,17 @@ public class WorkflowStateService
     /// <returns>The <see cref="WorkflowState"/> associated with the session ID.</returns>
     public WorkflowState DataFrom(string id)
     {
-        if (!_states.ContainsKey(id))
+        logger?.LogTrace("Retrieving workflow state for session ID {SessionId}.", id);
+
+        if (!_states.TryGetValue(id, out var state))
         {
-            _states[id] = new WorkflowState();
+            logger?.LogWarning("No workflow state found for session ID {SessionId}. Creating a new state.", id);
+            state = new WorkflowState();
+            _states[id] = state;
         }
-        return _states[id];
+
+        logger?.LogDebug("Returning workflow state for session ID {SessionId}.", id);
+        return state;
     }
 
     /// <summary>
@@ -34,10 +41,24 @@ public class WorkflowStateService
     /// <param name="update">An action to modify the <see cref="WorkflowState"/> associated with the session ID.</param>
     public void UpdateDataContext(string id, Action<WorkflowState> update)
     {
-        if (!_states.ContainsKey(id))
+        logger?.LogInformation("Updating workflow state for session ID {SessionId}.", id);
+
+        try
         {
-            _states[id] = new WorkflowState();
+            if (!_states.ContainsKey(id))
+            {
+                logger?.LogTrace("No workflow state found for session ID {SessionId}. Creating a new state.", id);
+
+                _states[id] = new WorkflowState();
+            }
+            update(_states[id]);
+
+            logger?.LogDebug("Workflow state updated successfully for session ID {SessionId}.", id);
         }
-        update(_states[id]);
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "An error occurred while updating the workflow state for session ID {SessionId}.", id);
+            throw;
+        }
     }
 }
