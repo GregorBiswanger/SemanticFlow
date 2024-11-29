@@ -27,6 +27,6 @@ public class WorkflowState
     /// <returns>A JSON string representation of the collected data.</returns>
     public string ToPromptString()
     {
-        return JsonSerializer.Serialize(CollectedData);
+        return JsonSerializer.Serialize(CollectedData) ?? "";
     }
 }

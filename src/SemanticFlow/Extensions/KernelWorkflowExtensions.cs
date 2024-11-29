@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SemanticFlow.Builders;
 using SemanticFlow.Services;
 
@@ -14,9 +15,26 @@ public static class KernelWorkflowExtensions
     /// <returns>An instance of <see cref="KernelWorkflowBuilderStart"/> to begin defining the workflow with activities.</returns>
     public static KernelWorkflowBuilderStart AddKernelWorkflow(this IServiceCollection services)
     {
-        services.AddSingleton<WorkflowStateService>();
-        services.AddSingleton<WorkflowService>();
+        var logger = services.BuildServiceProvider().GetService<ILogger<KernelWorkflowBuilderStart>>();
+        logger?.LogTrace("Adding kernel workflow services to the service collection.");
 
-        return new KernelWorkflowBuilderStart(services);
+        try
+        {
+            // Register workflow-related services
+            services.AddSingleton<WorkflowStateService>();
+            logger?.LogDebug("Registered WorkflowStateService as a singleton.");
+
+            services.AddSingleton<WorkflowService>();
+            logger?.LogDebug("Registered WorkflowService as a singleton.");
+
+            logger?.LogTrace("Kernel workflow services added successfully.");
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "An error occurred while adding kernel workflow services.");
+            throw;
+        }
+
+        return new KernelWorkflowBuilderStart(services, services.BuildServiceProvider().GetService<ILogger<KernelWorkflowBuilderStart>>());
     }
 }

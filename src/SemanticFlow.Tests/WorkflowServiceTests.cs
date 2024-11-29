@@ -16,6 +16,8 @@ public class WorkflowServiceTests
     {
         var services = new ServiceCollection();
 
+        services.AddLogging();
+
         services.AddSingleton<WorkflowStateService>();
         services.AddTransient<IActivity, CustomerIdentificationActivity>();
         services.AddTransient<IActivity, DeliveryTimeEstimationActivity>();
@@ -96,6 +98,7 @@ public class WorkflowServiceTests
     {
         // Arrange
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddSingleton<WorkflowStateService>();
         services.AddSingleton<WorkflowService>();
         services.AddSingleton<Kernel>();
@@ -198,6 +201,7 @@ public class WorkflowServiceTests
 
         // Act
         services.AddKernel();
+        services.AddLogging();
         services.AddKernelWorkflow()
             .StartWith<CustomerIdentificationActivity>()
             .EndsWith<DeliveryTimeEstimationActivity>();
