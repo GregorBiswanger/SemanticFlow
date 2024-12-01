@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticFlow", "src\Semanti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticFlow.DemoWebApi", "SemanticFlow.DemoWebApi\SemanticFlow.DemoWebApi.csproj", "{A9CC60D4-98AB-419E-931C-C462AA2E61CB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticFlow.DemoConsoleApp", "samples\SemanticFlow.DemoConsoleApp\SemanticFlow.DemoConsoleApp.csproj", "{DC7CE9B4-396C-4EE3-A54F-D35134628C51}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{A9CC60D4-98AB-419E-931C-C462AA2E61CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9CC60D4-98AB-419E-931C-C462AA2E61CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9CC60D4-98AB-419E-931C-C462AA2E61CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC7CE9B4-396C-4EE3-A54F-D35134628C51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC7CE9B4-396C-4EE3-A54F-D35134628C51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC7CE9B4-396C-4EE3-A54F-D35134628C51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC7CE9B4-396C-4EE3-A54F-D35134628C51}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
