@@ -2,89 +2,106 @@
 
 # Semantic Flow
 
-**Semantic Flow** is a powerful state manager designed to orchestrate complex workflows using the **Microsoft Semantic Kernel**. With Semantic Flow, you can break down intricate AI-driven processes into manageable, self-contained steps, known as **Activities**, ensuring your AI solution operates efficiently and transparently.
+**Semantic Flow** is a powerful state manager and a game-changer in the orchestration of generative AI workflows. Designed to simplify complex processes, reduce costs, and increase efficiency, it enables you to break down intricate AI-driven workflows into manageable, self-contained steps - known as **Activities** - through a modular architecture perfectly aligned with the **Microsoft Semantic Kernel**.
 
-## Why Semantic Flow? 🚀
+## 🚀 Why Semantic Flow?
 
-When building AI-powered solutions with the **Microsoft Semantic Kernel**, managing multi-step processes can quickly become challenging. Each step may require:
+**Traditional AI workflow orchestration is inefficient. Semantic Flow changes that.**
 
-- A specific **System Prompt** tailored to its purpose.
-- Customized **model configurations** (e.g., model type, parameters like temperature and max tokens).
-- Seamless transitions between steps while persisting data and state.
+1. **Overwhelming System Prompts**  
+   - Long prompts lead to increased costs due to excessive token usage.  
+   - They overload the model with irrelevant information, which decreases efficiency and accuracy.  
+   - **Semantic Flow solves this by dividing large prompts into smaller, specialized system prompts for each activity, optimizing both performance and cost.**
 
-Semantic Flow streamlines this process by introducing the concept of **Activities**, self-contained units that handle individual steps of a workflow. Each activity:
+2. **One Model for Everything**  
+   - A single model is often inefficient and expensive for diverse tasks.  
+   - **With Semantic Flow, each activity can use the most suitable model - whether it`s GPT-3.5 Turbo for simpler tasks or GPT-4 for more complex ones.**
 
-- Operates independently with its own **System Prompt**.
-- Configures the desired AI model and parameters.
-- Optionally registers **Kernel Functions** for added flexibility, such as:
-  - Receiving external data.
-  - Persisting state with the State Manager.
-  - Signaling the completion of the activity and transitioning to the next.
+3. **Unnecessary Registered Plugins / Kernel Functions**  
+   - In traditional approaches, all available functions are often registered, regardless of whether they are needed.  
+   - This increases latency, costs, and complexity.  
+   - **Semantic Flow registers only the functions that are truly relevant to the current activity.**
 
-## Features ✨
+4. **Complex Software Architecture**  
+   - Without a clear structure, the code quickly becomes convoluted and hard to maintain.  
+   - **Semantic Flow brings order with a clean, modular architecture.**
 
-- **Stateful Workflows**: Keep track of progress and collected data across multiple workflow sessions.
-- **Atomic Activities**: Each activity is self-contained, ensuring a clear separation of concerns.
-- **Seamless Integration**: Built to work directly with the Microsoft Semantic Kernel.
-- **Customizable**: Define model settings, parameters, and prompts on a per-activity basis.
-- **Flexible Extensions**: Add Kernel Functions for custom logic within activities.
+5. **Manual State Tracking**  
+   - Developers often need to manually track the conversation context.  
+   - **Semantic Flow uses the WorkflowState service to automatically save progress and make it accessible.**
 
-## Installation 📦
+## 🔍 How Does Semantic Flow Work?
 
-Install Semantic Flow via NuGet:
+**Imagine building a complex AI-driven process** - such as an order system, customer interaction, or data analysis. Traditional approaches often struggle with scalability and efficiency. Semantic Flow revolutionizes this by breaking the process into **manageable steps**, called **Activities**.
+
+### What is an Activity?
+
+Activities are the **atomic building blocks** of Semantic Flow. Each activity is:
+
+- 🧩 **Independent:** Focused on a single, well-defined task.  
+- ⚡ **Customizable:** Designed to include only what`s needed for the current task, reducing overhead and cost:  
+  1. **Own System Prompt:** Contains only the relevant information for this task.  
+  2. **Own Model:** Each activity can use a different model (e.g., GPT-4, GPT-3.5 Turbo, Llama).  
+  3. **Own Settings:** Model parameters like temperature, token limit, etc., can be configured individually.  
+  4. **Own Kernel Functions:** Only the relevant functions for the current step are registered.
+
+### Example: Pizza Order Workflow
+
+![Pizza Order Workflow](https://github.com/GregorBiswanger/SemanticFlow/raw/main/assets/semantic-flow-workflow-sample.png)
+
+In a pizza ordering workflow, the activities might look like this:
+
+1. **Customer Identification Activity**: Identifies the customer.  
+2. **Menu Selection Activity**: The customer selects a pizza.  
+3. **Payment Processing Activity**: Payment is processed.  
+4. **Order Confirmation Activity**: The order is confirmed.
+
+Each activity works with its **own prompts, models, and functions**, ensuring the entire process is optimized and executed precisely.
+
+## ⚙️ Installation
+
+### Prerequisites
+
+- .NET 8.0 or later  
+- Microsoft Semantic Kernel  
+
+Semantic Flow is available via [![NuGet](https://img.shields.io/nuget/v/SemanticFlow?style=flat-square)](https://www.nuget.org/packages/SemanticFlow/)
 
 ```bash
 dotnet add package SemanticFlow
 ```
 
-## How It Works 🛠️
+## 🛠 Getting Started
 
-Semantic Flow allows you to define workflows in a structured, fluent API:
+### 1. Configure the Workflow
+
+Set up the workflow by defining a sequence of activities:
 
 ```csharp
+// You need Semantic Kernel
+builder.Services.AddKernel()
+    .AddAzureOpenAIChatCompletion(deployment, endpoint, apiKey, modelId: "gpt-4")
+    .AddAzureOpenAIChatCompletion(deployment, endpoint, apiKey, modelId: "gpt-35-turbo");
+
+// Setup from Semantic Flow
 services.AddKernelWorkflow()
     .StartWith<CustomerIdentificationActivity>()
-    .Then<CustomerIdentificationActivity>()
-    .EndsWith<DeliveryTimeEstimationActivity>();
+    .Then<MenuSelectionActivity>()
+    .Then<PaymentProcessingActivity>()
+    .EndsWith<OrderConfirmationActivity>();
 ```
 
-Here’s what happens:
+### 2. Create an Activity
 
-1. Each step (or **Activity**) is registered in the workflow in the specified order.
-2. The **State Manager** keeps track of progress and transitions between steps automatically.
-3. Activities execute with their own configurations, prompts, and functions.
-
-## Step-by-Step Guide 🧭
-
-### 1. Configure Your Services 🔧
-
-Add the necessary services in your `IServiceCollection`:
-
-```csharp
-var services = new ServiceCollection();
-services.AddKernelWorkflow()
-    .StartWith<CustomerIdentificationActivity>()
-    .Then<CustomerIdentificationActivity>()
-    .EndsWith<DeliveryTimeEstimationActivity>();
-```
-
-Build the service provider:
-
-```csharp
-var serviceProvider = services.BuildServiceProvider();
-```
-
-### 2. Create Your Activities 🏗️
-
-Implement custom activities by inheriting from `IActivity`. For example:
+Define a custom activity, including its prompt, model, and logic:
 
 ```csharp
 public class CustomerIdentificationActivity : IActivity
 {
-    public string SystemPrompt { get; set; } = "Identify the customer based on their input.";
+    public string SystemPrompt { get; set; } = "Please identify the customer based on their input.";
     public PromptExecutionSettings PromptExecutionSettings { get; set; } = new PromptExecutionSettings
     {
-        ModelId = "gpt-4",
+        ModelId = "gpt-35-turbo",
         Temperature = 0.7
     };
 
@@ -96,66 +113,77 @@ public class CustomerIdentificationActivity : IActivity
 }
 ```
 
-Each activity:
+### 3. Start the Workflow
 
-- Has its own **System Prompt**.
-- Configures the AI model and its parameters.
-- Can optionally include **Kernel Functions**, like `IdentifyCustomer`.
-
-### 3. Manage Your Workflow ⚙️
-
-Use the `WorkflowService` to execute workflows:
+Start the workflow and retrieve the current activity:
 
 ```csharp
-var workflowService = serviceProvider.GetRequiredService<WorkflowService>();
-var kernel = serviceProvider.GetRequiredService<Kernel>();
-var sessionId = "user-session";
-
-// Get the current activity
-var activity = workflowService.GetCurrentActivity(sessionId, kernel);
-
-// Complete an activity and move to the next
-workflowService.CompleteActivity(sessionId, "Customer data", kernel);
-
-// Repeat until the workflow is completed
+var workflowService = kernel.GetRequiredService<WorkflowService>();
+var currentActivity = workflowService.GetCurrentActivity("session-id", kernel);
 ```
 
-The `WorkflowService` handles:
+### 4. Retrieve Workflow State
 
-- Retrieving the current activity based on the state.
-- Recording data and transitioning to the next activity.
-- Ensuring smooth execution across multiple sessions.
-
-### 4. Access Workflow State 📋
-
-The `WorkflowStateService` tracks progress and collected data:
+Access the workflow state at any time:
 
 ```csharp
 var stateService = serviceProvider.GetRequiredService<WorkflowStateService>();
-var state = stateService.DataFrom("user-session");
-
-Console.WriteLine($"Current Activity Index: {state.CurrentActivityIndex}");
-Console.WriteLine($"Collected Data: {state.ToPromptString()}");
+var state = stateService.DataFrom("session-id");
 ```
 
-## Example Use Case: Customer Service Workflow 🛒
+### 5. Complete Activity
 
-Imagine you're building a customer service AI solution. Here's how Semantic Flow can help:
+Complete an activity and transition to the next step:
 
-1. **Identify the Customer**: Collect user details with `CustomerIdentificationActivity`.
-2. **Process Customer Query**: Pass their query through a `QueryProcessingActivity`.
-3. **Estimate Delivery Time**: Use `DeliveryTimeEstimationActivity` to provide precise information.
+```csharp
+var workflowService = serviceProvider.GetRequiredService<WorkflowService>();
+var nextActivity = workflowService.CompleteActivity(chatId, sampleData, kernel);
+```
 
-With Semantic Flow, each step operates independently, but transitions smoothly, ensuring your AI delivers consistent and reliable results.
+## 🍕 Demo: Pizza Order Workflow
 
-## Contributing 🤝
+Try out Semantic Flow with our demo app:  
+**[SemanticFlow.DemoWebApi](https://github.com/GregorBiswanger/SemanticFlow/tree/main/SemanticFlow.DemoWebApi)**
 
-Contributions are welcome! Feel free to open issues or submit pull requests on GitHub.
+Explore how Semantic Flow simplifies real-world AI tasks with a Pizza Order Workflow demo - from customer identification to order confirmation, every step is streamlined.
 
-## License 📄
+## ✨ Key Features
 
-Semantic Flow is licensed under the Apache License 2.0. See the [LICENSE](https://raw.githubusercontent.com/GregorBiswanger/SemanticFlow/refs/heads/main/LICENSE.txt) file for details.
+- 🧠 **State Management:** Automatically tracks progress and data.  
+- 🔍 **Modular Architecture:** Activities are independent and easy to maintain.  
+- ⚡ **Flexible Model Management:** Different models and settings for each activity.  
+- 💰 **Cost Efficiency:** Reduces token consumption and optimizes API costs.  
+- 🤝 **Easy Integration:** Fully compatible with the Microsoft Semantic Kernel.  
 
-## Acknowledgments 🙌
+## 👨‍💻 Author
 
-Semantic Flow leverages the **Microsoft Semantic Kernel** to provide cutting-edge workflow orchestration for AI-driven solutions. Special thanks to the open-source community for their contributions and inspiration.
+**[Gregor Biswanger](https://github.com/GregorBiswanger)** - is a leading expert in generative AI, a Microsoft MVP for Azure AI and Web App Development. As an independent consultant, he works closely with the Microsoft product team for GitHub Copilot and supports companies in implementing modern AI solutions.
+
+ As a freelance consultant, trainer, and author, he shares his expertise in software architecture and cloud technologies and is a sought-after speaker at international conferences. For several years, he has been live-streaming every Friday evening on [Twitch](https://twitch.tv/GregorBiswanger) with [My Coding Zone](https://www.my-coding-zone.de) in german and is an active [YouTuber](https://youtube.com/GregorBiswanger).
+
+Reach out to Gregor if you need support in the form of consulting, training, or implementing AI solutions using .NET or Node.js. [LinkedIn](https://www.linkedin.com/in/gregor-biswanger-51342011/) or Twitter [@BFreakout](https://www.twitter.com/BFreakout)  
+
+See also the list of [contributors](https://github.com/GregorBiswanger/SemanticFlow/graphs/contributors) who participated in this project.
+
+## 🙋‍♀️🙋‍♂ Contributing
+
+Feel free to submit a pull request if you find any bugs (to see a list of active issues, visit the [Issues section](https://github.com/GregorBiswanger/SemanticFlow/issues).
+Please make sure all commits are properly documented.
+
+The best thing would be to write about what you plan to do in the issue beforehand. Then there will be no disappointment if we cannot accept your pull request.
+
+## 🙏 Donate
+
+I work on this open-source project in my free time alongside a full-time job and raising three kids. If you`d like to support my work and help me dedicate more time to this project, consider sponsoring me on GitHub:  
+
+- [Gregor Biswanger](https://github.com/sponsors/GregorBiswanger)  
+
+Your sponsorship allows me to invest more time in improving the project and prioritizing important issues or features. Any support is greatly appreciated - thank you! 🍻  
+
+## 📜 License
+
+This project is licensed under the [**Apache License 2.0**](https://raw.githubusercontent.com/GregorBiswanger/SemanticFlow/refs/heads/main/LICENSE.txt) - © Gregor Biswanger 2024
+
+## 🌟 Get Started Now
+
+Optimize, scale, and modularize your generative AI workflows with **Semantic Flow**.
