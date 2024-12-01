@@ -26,10 +26,6 @@ This command will start Open WebUI and make it accessible locally at `http://loc
 
 For more detailed information on setting up Open WebUI with Docker, including advanced configurations such as GPU support, refer to the official [Open WebUI GitHub repository](https://github.com/open-webui/open-webui).
 
-The information about the **Ollama API Facade Metadata Pipe Function** for Open WebUI fits best under a new section right after the **Installation and Setup** section. This ensures the configuration steps for enabling the required metadata are clearly presented before diving into the core workflow explanation.
-
-Here's the updated section:
-
 ### 🛠 Setting Up Open WebUI with Metadata Support
 
 By default, Open WebUI's Ollama API Facade does not send `Id`, `ChatId`, and `SessionId` metadata in the `ChatRequest` object to the backend. To enable these critical metadata fields for the ASP.NET Core Web API backend, you need to install and configure a custom "Pipe Function" in Open WebUI.
