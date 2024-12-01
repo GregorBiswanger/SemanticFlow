@@ -101,10 +101,10 @@ The pizza order workflow is defined using **Semantic Flow**. Individual steps of
 
 ```csharp
 builder.Services.AddKernelWorkflow()
-    .StartWith<BegruessungsActivity>()
-    .Then<BestellungsAufnahmeActivity>()
-    .Then<ZahlungsAbwicklungActivity>()
-    .EndsWith<BestellungsBestaetigungActivity>();
+    .StartWith<CustomerIdentificationActivity>()
+    .Then<MenuSelectionActivity>()
+    .Then<PaymentProcessingActivity>()
+    .EndsWith<OrderConfirmationActivity>();
 ```
 
 Each `Activity` represents a specific step in the ordering process, from greeting the customer to confirming the order.
