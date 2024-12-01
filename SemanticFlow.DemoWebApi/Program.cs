@@ -44,8 +44,8 @@ app.MapPostApiChat(async (chatRequest, chatCompletionService, httpContext, kerne
     var chatHistory = chatRequest.ToChatHistory(systemPrompt);
 
     var chatCompletion = kernel.GetChatCompletionForActivity(currentActivity);
-    var chatMessageContents = await chatCompletion.GetChatMessageContentsAsync(chatHistory, currentActivity.PromptExecutionSettings, kernel);
-    await chatMessageContents.First().StreamToResponseAsync(httpContext.Response);
+    await chatCompletion.GetStreamingChatMessageContentsAsync(chatHistory, currentActivity.PromptExecutionSettings, kernel)
+        .StreamToResponseAsync(httpContext.Response);
 });
 
 app.Run();
