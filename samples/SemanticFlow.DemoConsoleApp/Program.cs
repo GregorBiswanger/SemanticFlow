@@ -31,7 +31,8 @@ builder.Services.AddKernelWorkflow()
     .Then<PaymentProcessingActivity>()
     .EndsWith<OrderConfirmationActivity>();
 
-builder.Services.AddProxyForDebug();
+// Analyze with Burp Suite the Semantic Kernel backend communication
+//builder.Services.AddProxyForDebug();
 
 var kernel = builder.Build();
 
