@@ -17,7 +17,7 @@ var azureOpenAiEndpoint = configuration["AzureOpenAI:Endpoint"];
 var azureOpenAiDeploymentNameGpt4 = configuration["AzureOpenAI:DeploymentNameGpt4"];
 var azureOpenAiDeploymentNameGpt35 = configuration["AzureOpenAI:DeploymentNameGpt35"];
 
-builder.Services.AddProxyForDebug().AddKernel()
+builder.Services.AddKernel()
     .AddAzureOpenAIChatCompletion(azureOpenAiDeploymentNameGpt4, azureOpenAiEndpoint, azureOpenAiApiKey, modelId: "gpt-4")
     .AddAzureOpenAIChatCompletion(azureOpenAiDeploymentNameGpt35, azureOpenAiEndpoint, azureOpenAiApiKey, modelId: "gpt-35-turbo");
 
@@ -31,8 +31,6 @@ var app = builder.Build();
 
 app.MapPostApiChat(async (chatRequest, chatCompletionService, httpContext, kernel) =>
 {
-
-    // TODO: Noch in die Ollama API Facade doku aufnehmen: https://openwebui.com/f/gregorbiswanger/ollama_api_facade_metadata/
     string chatId = chatRequest.ChatId ?? string.Empty;
 
     var workflowService = kernel.GetRequiredService<WorkflowService>();
