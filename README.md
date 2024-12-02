@@ -137,7 +137,7 @@ Complete an activity and transition to the next step:
 
 ```csharp
 var workflowService = serviceProvider.GetRequiredService<WorkflowService>();
-var nextActivity = workflowService.CompleteActivity(chatId, sampleData, kernel);
+var nextActivity = workflowService.CompleteActivity("session-id", dataFromUser, kernel);
 ```
 
 ## 🍕 Demo: Pizza Order Workflow
