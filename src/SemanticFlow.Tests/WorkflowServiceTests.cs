@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
@@ -222,4 +223,39 @@ public class WorkflowServiceTests
         currentActivity.Should().NotBeNull();
         currentActivity.Should().BeOfType<DeliveryTimeEstimationActivity>();
     }
+
+    [Fact]
+    public void WorkflowService_ShouldGoToSpecificActivity_ByType()
+    {
+        // Arrange
+        var workflowService = _serviceProvider.GetRequiredService<WorkflowService>();
+        var kernel = _serviceProvider.GetRequiredService<Kernel>();
+        var sessionId = "goto-activity";
+
+        // Act
+        IActivity? activity = workflowService.GoTo<CustomerIdentificationActivity>(sessionId, kernel);
+
+        // Assert
+        activity.Should().BeOfType<CustomerIdentificationActivity>();
+        workflowService.WorkflowState.DataFrom(sessionId).CurrentActivityIndex.Should().Be(0);
+    }
+
+    [Fact]
+    public void WorkflowService_ShouldGoToSpecificActivity_ByType_WithData()
+    {
+        // Arrange
+        var workflowService = _serviceProvider.GetRequiredService<WorkflowService>();
+        var kernel = _serviceProvider.GetRequiredService<Kernel>();
+        var sessionId = "goto-activity-with-data";
+        var data = "Test Data";
+
+        // Act
+        IActivity? activity = workflowService.GoTo<CustomerIdentificationActivity>(sessionId, data, kernel);
+
+        // Assert
+        activity.Should().BeOfType<CustomerIdentificationActivity>();
+        workflowService.WorkflowState.DataFrom(sessionId).CurrentActivityIndex.Should().Be(0);
+        workflowService.WorkflowState.DataFrom(sessionId).CollectedData.Should().Contain(data);
+    }
+
 }

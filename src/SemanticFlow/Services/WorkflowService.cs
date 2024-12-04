@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using SemanticFlow.Extensions;
 using SemanticFlow.Interfaces;
-using System;
+using SemanticFlow.Models;
 
 namespace SemanticFlow.Services;
 
@@ -30,17 +30,17 @@ public class WorkflowService(IServiceProvider serviceProvider, WorkflowStateServ
     /// <returns>
     /// The current activity to be executed, or <c>null</c> if the workflow has been completed.
     /// </returns>
-    public IActivity GetCurrentActivity(string id, Kernel kernel)
+    public IActivity? GetCurrentActivity(string id, Kernel kernel)
     {
         logger?.LogInformation("Fetching current activity for workflow session {WorkflowId}", id);
 
-        var state = workflowStateService.DataFrom(id);
+        var state = WorkflowState.DataFrom(id);
         var registeredActivities = serviceProvider.GetServices<IActivity>().ToList();
 
         if (state.CurrentActivityIndex >= registeredActivities.Count)
         {
             logger?.LogWarning("Workflow {WorkflowId} is complete. No more activities.", id);
-            return null; // Workflow done - Todo: Still need an idea what should happen here
+            return null;
         }
 
         var activity = registeredActivities[state.CurrentActivityIndex];
@@ -52,6 +52,17 @@ public class WorkflowService(IServiceProvider serviceProvider, WorkflowStateServ
     }
 
     /// <summary>
+    /// Completes the current activity for the specified workflow session without providing additional data
+    /// and transitions to the next activity.
+    /// </summary>
+    /// <param name="id">The unique identifier for the workflow session.</param>
+    /// <param name="kernel">The Semantic Kernel instance to use for the next activity.</param>
+    /// <returns>
+    /// The next activity to be executed, or <c>null</c> if the workflow has been completed.
+    /// </returns>
+    public IActivity? CompleteActivity(string id, Kernel kernel) => CompleteActivity(id, null, kernel);
+
+    /// <summary>
     /// Completes the current activity for the specified workflow session by recording the provided data
     /// and transitioning to the next activity.
     /// </summary>
@@ -61,54 +72,98 @@ public class WorkflowService(IServiceProvider serviceProvider, WorkflowStateServ
     /// <returns>
     /// The next activity to be executed, or <c>null</c> if the workflow has been completed.
     /// </returns>
-    public IActivity CompleteActivity(string id, object data, Kernel kernel)
+    public IActivity? CompleteActivity(string id, object? data, Kernel kernel)
     {
-        logger?.LogInformation("Completing activity for workflow session {WorkflowId} with data: {ActivityData}", id, data);
+        logger?.LogInformation("Completing activity for workflow session {WorkflowId}", id);
 
-        try
-        {
-            workflowStateService.UpdateDataContext(id, workflowState =>
+        return UpdateWorkflowState(
+            id,
+            kernel,
+            workflowState =>
             {
-                workflowState.CollectedData.Add(data);
+                if (data != null)
+                {
+                    workflowState.CollectedData.Add(data);
+                }
                 workflowState.CurrentActivityIndex++;
-            });
-
-            logger?.LogDebug("Activity completed successfully for workflow session {WorkflowId}. Transitioning to the next activity.", id);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "An error occurred while completing the activity for workflow session {WorkflowId}", id);
-            throw;
-        }
-
-        return GetCurrentActivity(id, kernel);
+            },
+            "An error occurred while completing the activity."
+        );
     }
 
     /// <summary>
-    /// Completes the current activity for the specified workflow session without providing additional data
-    /// and transitions to the next activity.
+    /// Navigates to the activity of the specified type for the given workflow session.
+    /// Updates the workflow state to point to the target activity and returns the current activity.
+    /// </summary>
+    /// <typeparam name="T">The type of the activity to navigate to.</typeparam>
+    /// <param name="id">The unique identifier for the workflow session.</param>
+    /// <param name="kernel">The Semantic Kernel instance to use for registering activity functions.</param>
+    /// <returns>
+    /// The current activity to be executed, or <c>null</c> if the workflow has been completed.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">Thrown when no activity of the specified type is found.</exception>
+    public IActivity? GoTo<T>(string id, Kernel kernel) where T : IActivity => GoTo<T>(id, null, kernel);
+
+    /// <summary>
+    /// Navigates to the activity of the specified type for the given workflow session, recording the provided data.
+    /// Updates the workflow state to point to the target activity and returns the current activity.
+    /// </summary>
+    /// <typeparam name="T">The type of the activity to navigate to.</typeparam>
+    /// <param name="id">The unique identifier for the workflow session.</param>
+    /// <param name="data">The data to be recorded for the current activity.</param>
+    /// <param name="kernel">The Semantic Kernel instance to use for registering activity functions.</param>
+    /// <returns>
+    /// The current activity to be executed, or <c>null</c> if the workflow has been completed.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">Thrown when no activity of the specified type is found.</exception>
+    public IActivity? GoTo<T>(string id, object? data, Kernel kernel) where T : IActivity
+    {
+        logger?.LogInformation("Navigating to activity of type {ActivityType} for workflow session {WorkflowId}", typeof(T).Name, id);
+
+        var registeredActivities = serviceProvider.GetServices<IActivity>().ToList();
+        var targetIndex = registeredActivities.FindIndex(activity => activity is T);
+
+        if (targetIndex == -1)
+        {
+            logger?.LogWarning("No activity of type {ActivityType} found for workflow session {WorkflowId}", typeof(T).Name, id);
+            throw new InvalidOperationException($"No activity of type {typeof(T).Name} found.");
+        }
+
+        return UpdateWorkflowState(
+            id,
+            kernel,
+            workflowState =>
+            {
+                if (data != null)
+                {
+                    workflowState.CollectedData.Add(data);
+                }
+                workflowState.CurrentActivityIndex = targetIndex;
+            },
+            $"An error occurred while navigating to activity of type {typeof(T).Name}."
+        );
+    }
+
+    /// <summary>
+    /// Updates the workflow state based on the provided action and returns the current activity.
     /// </summary>
     /// <param name="id">The unique identifier for the workflow session.</param>
-    /// <param name="kernel">The Semantic Kernel instance to use for the next activity.</param>
+    /// <param name="kernel">The Semantic Kernel instance to use for registering activity functions.</param>
+    /// <param name="updateAction">The action to update the workflow state.</param>
+    /// <param name="errorMessage">The error message to log if an exception occurs.</param>
     /// <returns>
-    /// The next activity to be executed, or <c>null</c> if the workflow has been completed.
+    /// The current activity to be executed, or <c>null</c> if the workflow has been completed.
     /// </returns>
-    public IActivity CompleteActivity(string id, Kernel kernel)
+    private IActivity? UpdateWorkflowState(string id, Kernel kernel, Action<WorkflowState> updateAction, string errorMessage)
     {
-        logger?.LogInformation("Completing activity without additional data for workflow session {WorkflowId}", id);
-
         try
         {
-            workflowStateService.UpdateDataContext(id, workflowState =>
-            {
-                workflowState.CurrentActivityIndex++;
-            });
-
-            logger?.LogDebug("Activity completed successfully for workflow session {WorkflowId}. Transitioning to the next activity.", id);
+            WorkflowState.UpdateDataContext(id, updateAction);
+            logger?.LogDebug("Workflow state updated successfully for session {WorkflowId}", id);
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "An error occurred while completing the activity without additional data for workflow session {WorkflowId}", id);
+            logger?.LogError(ex, errorMessage);
             throw;
         }
 
