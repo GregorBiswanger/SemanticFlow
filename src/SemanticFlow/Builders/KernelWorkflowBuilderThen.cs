@@ -61,10 +61,5 @@ public class KernelWorkflowBuilderThen(IServiceCollection services, ILogger<Kern
             logger?.LogError(ex, "An error occurred while registering the final activity {ActivityType}.", typeof(TActivity).Name);
             throw;
         }
-
-        var activities = services.BuildServiceProvider().GetServices<IActivity>();
-        var registeredActivities = activities.Select(a => a.GetType().Name);
-
-        logger?.LogInformation("Workflow registered: {Activities}", string.Join(" -> ", registeredActivities));
     }
 }
