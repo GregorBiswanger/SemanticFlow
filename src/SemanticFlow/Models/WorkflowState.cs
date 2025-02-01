@@ -1,3 +1,4 @@
+using Microsoft.SemanticKernel.ChatCompletion;
 using System.Text.Json;
 
 namespace SemanticFlow.Models;
@@ -19,6 +20,12 @@ public class WorkflowState
     /// Each entry in the list represents a piece of data captured at a specific step in the workflow.
     /// </summary>
     public List<object> CollectedData { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the chat history associated with the workflow.
+    /// This property maintains a record of all chat interactions that have occurred during the workflow execution.
+    /// </summary>
+    public ChatHistory ChatHistory { get; set; } = new();
 
     /// <summary>
     /// Serializes the collected data into a JSON string format.

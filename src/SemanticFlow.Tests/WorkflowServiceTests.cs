@@ -1,6 +1,8 @@
+using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
 using SemanticFlow.Extensions;
 using SemanticFlow.Interfaces;
 using SemanticFlow.Services;
@@ -315,5 +317,46 @@ public class WorkflowServiceTests
 
         // Assert
         isWorkflowActive.Should().BeFalse();
+    }
+
+    [Fact]
+    public void WorkflowState_ShouldInitializeChatHistory_WhenNewSessionIsCreated()
+    {
+        // Arrange
+        var workflowService = _serviceProvider.GetRequiredService<WorkflowService>();
+        var kernel = _serviceProvider.GetRequiredService<Kernel>();
+        var sessionId = "data-storage";
+        workflowService.GetCurrentActivity(sessionId, kernel);
+        var state = workflowService.WorkflowState.DataFrom(sessionId);
+
+        // Act
+        ChatHistory chatHistory = state.ChatHistory;
+
+        // Assert
+        chatHistory.Count.Should().Be(0);
+    }
+
+    [Fact]
+    public void WorkflowState_ShouldMaintainSeparateChatHistories_ForDifferentSessions()
+    {
+        // Arrange
+        var workflowService = _serviceProvider.GetRequiredService<WorkflowService>();
+        var kernel = _serviceProvider.GetRequiredService<Kernel>();
+        var sessionId1 = "user-1";
+        var sessionId2 = "user-2";
+
+        workflowService.GetCurrentActivity(sessionId1, kernel);
+        workflowService.GetCurrentActivity(sessionId2, kernel);
+
+        // Act
+        var state1 = workflowService.WorkflowState.DataFrom(sessionId1);
+        state1.ChatHistory.AddUserMessage("Hello World!");
+
+        var state2 = workflowService.WorkflowState.DataFrom(sessionId2);
+
+        // Assert
+        state1.ChatHistory.Count.Should().Be(1);
+        state1.ChatHistory[0].Items[0].ToString().Should().Be("Hello World!");
+        state2.ChatHistory.Count.Should().Be(0);
     }
 }
