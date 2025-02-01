@@ -1,4 +1,3 @@
-using System.Globalization;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
@@ -258,4 +257,63 @@ public class WorkflowServiceTests
         workflowService.WorkflowState.DataFrom(sessionId).CollectedData.Should().Contain(data);
     }
 
+    [Fact]
+    public void IsWorkflowActiveFor_ShouldReturnFalse_WhenWorkflowIsNotRunningForSession()
+    {
+        // Arrange
+        var workflowService = _serviceProvider.GetRequiredService<WorkflowService>();
+        var sessionId = "goto-activity-with-data";
+
+        // Act
+        bool isWorkflowActive = workflowService.IsWorkflowActiveFor(sessionId);
+
+        // Assert
+        isWorkflowActive.Should().BeFalse();
+    }    
+    
+    [Fact]
+    public void IsWorkflowActiveFor_ShouldReturnTrue_WhenWorkflowIsRunningForSession()
+    {
+        // Arrange
+        var workflowService = _serviceProvider.GetRequiredService<WorkflowService>();
+        var sessionId = "goto-activity-with-data";
+        var kernel = _serviceProvider.GetRequiredService<Kernel>();
+        workflowService.GetCurrentActivity(sessionId, kernel);
+
+        // Act
+        bool isWorkflowActive = workflowService.IsWorkflowActiveFor(sessionId);
+
+        // Assert
+        isWorkflowActive.Should().BeTrue();
+    }    
+    
+    [Fact]
+    public void IsWorkflowNotActiveFor_ShouldReturnTrue_WhenWorkflowIsNotRunningForSession()
+    {
+        // Arrange
+        var workflowService = _serviceProvider.GetRequiredService<WorkflowService>();
+        var sessionId = "goto-activity-with-data";
+
+        // Act
+        bool isWorkflowActive = workflowService.IsWorkflowNotActiveFor(sessionId);
+
+        // Assert
+        isWorkflowActive.Should().BeTrue();
+    }    
+    
+    [Fact]
+    public void IsWorkflowNotActiveFor_ShouldReturnFalse_WhenWorkflowIsRunningForSession()
+    {
+        // Arrange
+        var workflowService = _serviceProvider.GetRequiredService<WorkflowService>();
+        var sessionId = "goto-activity-with-data";
+        var kernel = _serviceProvider.GetRequiredService<Kernel>();
+        workflowService.GetCurrentActivity(sessionId, kernel);
+
+        // Act
+        bool isWorkflowActive = workflowService.IsWorkflowNotActiveFor(sessionId);
+
+        // Assert
+        isWorkflowActive.Should().BeFalse();
+    }
 }

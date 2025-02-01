@@ -169,4 +169,25 @@ public class WorkflowService(IServiceProvider serviceProvider, WorkflowStateServ
 
         return GetCurrentActivity(id, kernel);
     }
+
+    /// <summary>
+    /// Determines whether a workflow is currently active for the specified session ID.
+    /// </summary>
+    /// <param name="id">The unique identifier for the workflow session.</param>
+    /// <returns><c>true</c> if the workflow is active for the session; otherwise, <c>false</c>.</returns>
+    public bool IsWorkflowActiveFor(string id)
+    {
+        return WorkflowState.IsWorkflowActiveFor(id);
+    }
+
+    /// <summary>
+    /// Determines whether a workflow is not active for the specified session ID.
+    /// </summary>
+    /// <param name="id">The unique identifier for the workflow session.</param>
+    /// <returns><c>true</c> if the workflow is not active for the session; otherwise, <c>false</c>.</returns>
+    public bool IsWorkflowNotActiveFor(string id)
+    {
+        return !IsWorkflowActiveFor(id);
+    }
+
 }

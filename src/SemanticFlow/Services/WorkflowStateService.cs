@@ -61,4 +61,14 @@ public class WorkflowStateService(ILogger<WorkflowStateService>? logger)
             throw;
         }
     }
+
+    /// <summary>
+    /// Determines whether a workflow is currently active for the specified session ID.
+    /// </summary>
+    /// <param name="id">The unique identifier for the workflow session.</param>
+    /// <returns><c>true</c> if the workflow is active for the session; otherwise, <c>false</c>.</returns>
+    internal bool IsWorkflowActiveFor(string id)
+    {
+        return _states.ContainsKey(id);
+    }
 }
