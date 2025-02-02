@@ -28,6 +28,12 @@ public class WorkflowState
     public ChatHistory ChatHistory { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets the count of how many times the workflow has been completed for this session.
+    /// This property is incremented each time the workflow completes all activities and starts over.
+    /// </summary>
+    public int WorkflowCompletionCount { get; set; } = 0;
+
+    /// <summary>
     /// Serializes the collected data into a JSON string format.
     /// This can be used as part of a system prompt or context for AI models to process the accumulated workflow data.
     /// </summary>
@@ -35,5 +41,19 @@ public class WorkflowState
     public string ToPromptString()
     {
         return JsonSerializer.Serialize(CollectedData) ?? "";
+    }
+
+    /// <summary>
+    /// Resets the workflow state, setting the current activity index back to the first activity
+    /// and incrementing the workflow completion count. This method clears all collected data.
+    /// </summary>
+    /// <remarks>
+    /// <b>Warning:</b> This method should be used with caution as it will reset all collected data.
+    /// </remarks>
+    public void Reset()
+    {
+        WorkflowCompletionCount++;
+        CurrentActivityIndex = 0;
+        CollectedData.Clear();
     }
 }

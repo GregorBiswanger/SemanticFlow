@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using FluentAssertions;
+using FluentAssertions.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -67,11 +68,12 @@ public class WorkflowServiceTests
         nextActivity.Should().BeOfType<DeliveryTimeEstimationActivity>();
 
         var finalActivity = workflowService.CompleteActivity(sessionId, kernel);
-        finalActivity.Should().BeNull();
+        finalActivity.Should().BeOfType<CustomerIdentificationActivity>();
+        finalActivity.Should().NotBeNull();
     }
 
     [Fact]
-    public void WorkflowService_ShouldMaintainStateConsistency_AfterMultipleCompleteActivityCalls()
+    public void WorkflowService_ShouldResetActivityIndexAndIncrementCompletionCount_AfterMultipleCompleteActivityCalls()
     {
         // Arrange
         var workflowService = _serviceProvider.GetRequiredService<WorkflowService>();
@@ -88,11 +90,12 @@ public class WorkflowServiceTests
         // Assert
         firstActivity.Should().BeOfType<CustomerIdentificationActivity>();
         secondActivity.Should().BeOfType<DeliveryTimeEstimationActivity>();
-        thirdActivity.Should().BeNull();
+        thirdActivity.Should().BeOfType<CustomerIdentificationActivity>();
 
         var state = workflowService.WorkflowState.DataFrom(sessionId);
-        state.CurrentActivityIndex.Should().Be(2);
-        state.CollectedData.Should().Contain("First Data").And.Contain("Second Data");
+        state.CurrentActivityIndex.Should().Be(0);
+        state.CollectedData.Count.Should().Be(0);
+        state.WorkflowCompletionCount.Should().Be(1);
     }
 
     [Fact]
@@ -160,8 +163,17 @@ public class WorkflowServiceTests
     public void WorkflowService_ShouldStoreDataInCollectedData()
     {
         // Arrange
-        var workflowService = _serviceProvider.GetRequiredService<WorkflowService>();
-        var kernel = _serviceProvider.GetRequiredService<Kernel>();
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<WorkflowStateService>();
+        services.AddTransient<IActivity, CustomerIdentificationActivity>();
+        services.AddTransient<IActivity, DeliveryTimeEstimationActivity>();
+        services.AddTransient<IActivity, DeliveryTimeEstimationActivity>();
+        services.AddSingleton<WorkflowService>();
+        services.AddSingleton<Kernel>();
+        var serviceProvider = services.BuildServiceProvider();
+        var workflowService = serviceProvider.GetRequiredService<WorkflowService>();
+        var kernel = serviceProvider.GetRequiredService<Kernel>();
         var sessionId = "data-storage";
 
         workflowService.WorkflowState.UpdateDataContext(sessionId, state => { state.CurrentActivityIndex = 0; });

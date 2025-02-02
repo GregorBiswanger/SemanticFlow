@@ -23,33 +23,41 @@ public class WorkflowService(IServiceProvider serviceProvider, WorkflowStateServ
 
     /// <summary>
     /// Retrieves the current activity for the specified workflow session and prepares it for execution.
+    /// If the workflow has completed all activities, it resets the workflow state and starts over.
     /// This includes registering the activity's methods as functions in the Semantic Kernel.
     /// </summary>
     /// <param name="id">The unique identifier for the workflow session.</param>
     /// <param name="kernel">The Semantic Kernel instance to use for registering activity functions.</param>
     /// <returns>
-    /// The current activity to be executed, or <c>null</c> if the workflow has been completed.
+    /// The current activity to be executed, or <c>null</c> if no activities are registered.
     /// </returns>
     public IActivity? GetCurrentActivity(string id, Kernel kernel)
     {
         logger?.LogInformation("Fetching current activity for workflow session {WorkflowId}", id);
 
-        var state = WorkflowState.DataFrom(id);
+        var workflowState = WorkflowState.DataFrom(id);
         var registeredActivities = serviceProvider.GetServices<IActivity>().ToList();
 
-        if (state.CurrentActivityIndex >= registeredActivities.Count)
+        if (registeredActivities.Count == 0)
         {
-            logger?.LogWarning("Workflow {WorkflowId} is complete. No more activities.", id);
             return null;
         }
 
-        var activity = registeredActivities[state.CurrentActivityIndex];
+        if (workflowState.CurrentActivityIndex >= registeredActivities.Count)
+        {
+            logger?.LogWarning("Workflow {WorkflowId} is complete. No more activities. The workflow will start over and all collected data will be reset.", id);
+
+            workflowState.Reset();
+        }
+
+        var activity = registeredActivities[workflowState.CurrentActivityIndex];
         kernel.AddFromActivity(activity);
 
         logger?.LogDebug("Returning activity {ActivityName} for workflow session {WorkflowId}", activity.GetType().Name, id);
 
         return activity;
     }
+
 
     /// <summary>
     /// Completes the current activity for the specified workflow session without providing additional data
