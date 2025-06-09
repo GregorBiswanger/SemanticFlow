@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticFlow.Tests", "src\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticFlow", "src\SemanticFlow\SemanticFlow.csproj", "{AA540F82-22BA-43FB-A152-91E6B00559A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticFlow.DemoWebApi", "SemanticFlow.DemoWebApi\SemanticFlow.DemoWebApi.csproj", "{A9CC60D4-98AB-419E-931C-C462AA2E61CB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticFlow.DemoWebApi", "samples\SemanticFlow.DemoWebApi\SemanticFlow.DemoWebApi.csproj", "{A9CC60D4-98AB-419E-931C-C462AA2E61CB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticFlow.DemoConsoleApp", "samples\SemanticFlow.DemoConsoleApp\SemanticFlow.DemoConsoleApp.csproj", "{DC7CE9B4-396C-4EE3-A54F-D35134628C51}"
 EndProject

@@ -143,7 +143,7 @@ var nextActivity = workflowService.CompleteActivity("session-id", dataFromUser, 
 ## 🍕 Demo: Pizza Order Workflow
 
 Try out Semantic Flow with our demo app:  
-**[SemanticFlow.DemoWebApi](https://github.com/GregorBiswanger/SemanticFlow/tree/main/SemanticFlow.DemoWebApi)**
+**[SemanticFlow.DemoWebApi](https://github.com/GregorBiswanger/SemanticFlow/tree/main/samples/SemanticFlow.DemoWebApi)**
 
 Explore how Semantic Flow simplifies real-world AI tasks with a Pizza Order Workflow demo - from customer identification to order confirmation, every step is streamlined.
 

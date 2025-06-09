@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <PackageId>SemanticFlow</PackageId>
     <Version>1.0.8</Version>
@@ -15,14 +15,25 @@
     <PackageIcon>Assets/PackageIcon.png</PackageIcon>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/GregorBiswanger/SemanticFlow</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
 
   <ItemGroup>
     <Content Include="Assets/PackageIcon.png">
       <Pack>true</Pack>
       <PackagePath>Assets/</PackagePath>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="../../samples/**/*.*">
+      <Pack>False</Pack>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
