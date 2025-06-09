@@ -1,6 +1,3 @@
-using System.Runtime.InteropServices;
-using FluentAssertions;
-using FluentAssertions.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -8,6 +5,7 @@ using SemanticFlow.Extensions;
 using SemanticFlow.Interfaces;
 using SemanticFlow.Services;
 using SemanticFlow.Tests.Activities;
+using Shouldly;
 
 namespace SemanticFlow.Tests;
 
@@ -43,9 +41,9 @@ public class WorkflowServiceTests
         var currentActivity = workflowService.GetCurrentActivity(sessionId, kernel);
 
         // Assert
-        currentActivity.Should().NotBeNull();
-        currentActivity.Should().BeOfType<CustomerIdentificationActivity>();
-        workflowService.WorkflowState.DataFrom(sessionId).CurrentActivityIndex.Should().Be(0);
+        currentActivity.ShouldNotBeNull();
+        currentActivity.ShouldBeOfType<CustomerIdentificationActivity>();
+        workflowService.WorkflowState.DataFrom(sessionId).CurrentActivityIndex.ShouldBe(0);
     }
 
     [Fact]
@@ -63,13 +61,13 @@ public class WorkflowServiceTests
         var nextActivity = workflowService.CompleteActivity(sessionId, "Some Data", kernel);
 
         // Assert
-        firstActivity.Should().BeOfType<CustomerIdentificationActivity>();
-        nextActivity.Should().NotBeNull();
-        nextActivity.Should().BeOfType<DeliveryTimeEstimationActivity>();
+        firstActivity.ShouldBeOfType<CustomerIdentificationActivity>();
+        nextActivity.ShouldNotBeNull();
+        nextActivity.ShouldBeOfType<DeliveryTimeEstimationActivity>();
 
         var finalActivity = workflowService.CompleteActivity(sessionId, kernel);
-        finalActivity.Should().BeOfType<CustomerIdentificationActivity>();
-        finalActivity.Should().NotBeNull();
+        finalActivity.ShouldBeOfType<CustomerIdentificationActivity>();
+        finalActivity.ShouldNotBeNull();
     }
 
     [Fact]
@@ -88,14 +86,14 @@ public class WorkflowServiceTests
         var thirdActivity = workflowService.CompleteActivity(sessionId, "Second Data", kernel);
 
         // Assert
-        firstActivity.Should().BeOfType<CustomerIdentificationActivity>();
-        secondActivity.Should().BeOfType<DeliveryTimeEstimationActivity>();
-        thirdActivity.Should().BeOfType<CustomerIdentificationActivity>();
+        firstActivity.ShouldBeOfType<CustomerIdentificationActivity>();
+        secondActivity.ShouldBeOfType<DeliveryTimeEstimationActivity>();
+        thirdActivity.ShouldBeOfType<CustomerIdentificationActivity>();
 
         var state = workflowService.WorkflowState.DataFrom(sessionId);
-        state.CurrentActivityIndex.Should().Be(0);
-        state.CollectedData.Count.Should().Be(0);
-        state.WorkflowCompletionCount.Should().Be(1);
+        state.CurrentActivityIndex.ShouldBe(0);
+        state.CollectedData.Count.ShouldBe(0);
+        state.WorkflowCompletionCount.ShouldBe(1);
     }
 
     [Fact]
@@ -117,7 +115,7 @@ public class WorkflowServiceTests
         var currentActivity = workflowService.GetCurrentActivity(sessionId, kernel);
 
         // Assert
-        currentActivity.Should().BeNull();
+        currentActivity.ShouldBeNull();
     }
 
     [Fact]
@@ -134,8 +132,8 @@ public class WorkflowServiceTests
         var currentActivity = workflowService.GetCurrentActivity(sessionId, kernel);
 
         // Assert
-        currentActivity.Should().NotBeNull();
-        kernel.Plugins.Should().ContainSingle(plugin => plugin.Name == "CustomerIdentificationActivity");
+        currentActivity.ShouldNotBeNull();
+        kernel.Plugins.Count(plugin => plugin.Name == "CustomerIdentificationActivity").ShouldBe(1);
     }
 
     [Fact]
@@ -154,9 +152,9 @@ public class WorkflowServiceTests
         var currentActivity = workflowService.GetCurrentActivity(secondSessionId, kernel);
 
         // Assert
-        currentActivity.Should().NotBeNull();
-        workflowService.WorkflowState.DataFrom(secondSessionId).Should().NotBeNull();
-        workflowService.WorkflowState.DataFrom(secondSessionId).CurrentActivityIndex.Should().Be(0);
+        currentActivity.ShouldNotBeNull();
+        workflowService.WorkflowState.DataFrom(secondSessionId).ShouldNotBeNull();
+        workflowService.WorkflowState.DataFrom(secondSessionId).CurrentActivityIndex.ShouldBe(0);
     }
 
     [Fact]
@@ -184,8 +182,9 @@ public class WorkflowServiceTests
 
         // Assert
         var state = workflowService.WorkflowState.DataFrom(sessionId);
-        state.CollectedData.Should().Contain("Test Data 1").And.Contain("Test Data 2");
-        state.CollectedData.Should().HaveCount(2);
+        state.CollectedData.ShouldContain("Test Data 1");
+        state.CollectedData.ShouldContain("Test Data 2");
+        state.CollectedData.Count.ShouldBe(2);
     }
 
     [Fact]
@@ -203,8 +202,8 @@ public class WorkflowServiceTests
         var secondActivity = workflowService.CompleteActivity(sessionId, "Some Data", kernel);
 
         // Assert
-        firstActivity.Should().BeOfType<CustomerIdentificationActivity>();
-        secondActivity.Should().BeOfType<DeliveryTimeEstimationActivity>();
+        firstActivity.ShouldBeOfType<CustomerIdentificationActivity>();
+        secondActivity.ShouldBeOfType<DeliveryTimeEstimationActivity>();
     }
 
     [Fact]
@@ -232,9 +231,9 @@ public class WorkflowServiceTests
         var currentActivity = workflowService.GetCurrentActivity(sessionId, kernel);
 
         // Assert
-        initialActivity.Should().NotBeNull();
-        currentActivity.Should().NotBeNull();
-        currentActivity.Should().BeOfType<DeliveryTimeEstimationActivity>();
+        initialActivity.ShouldNotBeNull();
+        currentActivity.ShouldNotBeNull();
+        currentActivity.ShouldBeOfType<DeliveryTimeEstimationActivity>();
     }
 
     [Fact]
@@ -249,8 +248,8 @@ public class WorkflowServiceTests
         IActivity? activity = workflowService.GoTo<CustomerIdentificationActivity>(sessionId, kernel);
 
         // Assert
-        activity.Should().BeOfType<CustomerIdentificationActivity>();
-        workflowService.WorkflowState.DataFrom(sessionId).CurrentActivityIndex.Should().Be(0);
+        activity.ShouldBeOfType<CustomerIdentificationActivity>();
+        workflowService.WorkflowState.DataFrom(sessionId).CurrentActivityIndex.ShouldBe(0);
     }
 
     [Fact]
@@ -266,9 +265,9 @@ public class WorkflowServiceTests
         IActivity? activity = workflowService.GoTo<CustomerIdentificationActivity>(sessionId, data, kernel);
 
         // Assert
-        activity.Should().BeOfType<CustomerIdentificationActivity>();
-        workflowService.WorkflowState.DataFrom(sessionId).CurrentActivityIndex.Should().Be(0);
-        workflowService.WorkflowState.DataFrom(sessionId).CollectedData.Should().Contain(data);
+        activity.ShouldBeOfType<CustomerIdentificationActivity>();
+        workflowService.WorkflowState.DataFrom(sessionId).CurrentActivityIndex.ShouldBe(0);
+        workflowService.WorkflowState.DataFrom(sessionId).CollectedData.ShouldContain(data);
     }
 
     [Fact]
@@ -282,9 +281,9 @@ public class WorkflowServiceTests
         bool isWorkflowActive = workflowService.IsWorkflowActiveFor(sessionId);
 
         // Assert
-        isWorkflowActive.Should().BeFalse();
-    }    
-    
+        isWorkflowActive.ShouldBeFalse();
+    }
+
     [Fact]
     public void IsWorkflowActiveFor_ShouldReturnTrue_WhenWorkflowIsRunningForSession()
     {
@@ -298,7 +297,7 @@ public class WorkflowServiceTests
         bool isWorkflowActive = workflowService.IsWorkflowActiveFor(sessionId);
 
         // Assert
-        isWorkflowActive.Should().BeTrue();
+        isWorkflowActive.ShouldBeTrue();
     }    
     
     [Fact]
@@ -312,7 +311,7 @@ public class WorkflowServiceTests
         bool isWorkflowActive = workflowService.IsWorkflowNotActiveFor(sessionId);
 
         // Assert
-        isWorkflowActive.Should().BeTrue();
+        isWorkflowActive.ShouldBeTrue();
     }    
     
     [Fact]
@@ -328,7 +327,7 @@ public class WorkflowServiceTests
         bool isWorkflowActive = workflowService.IsWorkflowNotActiveFor(sessionId);
 
         // Assert
-        isWorkflowActive.Should().BeFalse();
+        isWorkflowActive.ShouldBeFalse();
     }
 
     [Fact]
@@ -345,7 +344,7 @@ public class WorkflowServiceTests
         ChatHistory chatHistory = state.ChatHistory;
 
         // Assert
-        chatHistory.Count.Should().Be(0);
+        chatHistory.Count.ShouldBe(0);
     }
 
     [Fact]
@@ -367,8 +366,8 @@ public class WorkflowServiceTests
         var state2 = workflowService.WorkflowState.DataFrom(sessionId2);
 
         // Assert
-        state1.ChatHistory.Count.Should().Be(1);
-        state1.ChatHistory[0].Items[0].ToString().Should().Be("Hello World!");
-        state2.ChatHistory.Count.Should().Be(0);
+        state1.ChatHistory.Count.ShouldBe(1);
+        state1.ChatHistory[0].Items[0].ToString().ShouldBe("Hello World!");
+        state2.ChatHistory.Count.ShouldBe(0);
     }
 }

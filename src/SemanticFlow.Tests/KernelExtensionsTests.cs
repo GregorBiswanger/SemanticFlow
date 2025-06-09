@@ -1,10 +1,10 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 using Microsoft.SemanticKernel.Services;
 using SemanticFlow.Extensions;
 using SemanticFlow.Tests.Activities;
+using Shouldly;
 
 namespace SemanticFlow.Tests;
 
@@ -25,7 +25,7 @@ public class KernelExtensionsTests
         kernel.AddFromActivity(customerIdentificationActivity);
 
         // Assert
-        kernel.Plugins.Should().ContainSingle(plugin => plugin.Name == "CustomerIdentificationActivity");
+        kernel.Plugins.Count(plugin => plugin.Name == "CustomerIdentificationActivity").ShouldBe(1);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class KernelExtensionsTests
         var chatCompletionService = kernel.GetChatCompletionForActivity(customerIdentificationActivity);
 
         // Assert
-        chatCompletionService.GetModelId().Should().Be("gpt-4");
+        chatCompletionService.GetModelId().ShouldBe("gpt-4");
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class KernelExtensionsTests
         var chatCompletionService = kernel.GetChatCompletionForActivity(customerIdentificationActivity);
 
         // Assert
-        chatCompletionService.GetModelId().Should().Be("gpt-35-turbo");
+        chatCompletionService.GetModelId().ShouldBe("gpt-35-turbo");
     }
 
     [Fact]
@@ -115,8 +115,8 @@ public class KernelExtensionsTests
         Action act = () => kernel.GetChatCompletionForActivity(customerIdentificationActivity);
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("No matching chat completion service found for the specified model ID.");
+        var exception = Should.Throw<InvalidOperationException>(act);
+        exception.Message.ShouldBe("No matching chat completion service found for the specified model ID.");
     }
 
 }

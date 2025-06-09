@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SemanticFlow.Tests.Activities;
-using FluentAssertions;
 using SemanticFlow.Extensions;
 using SemanticFlow.Interfaces;
+using SemanticFlow.Tests.Activities;
+using Shouldly;
 
 namespace SemanticFlow.Tests;
 
@@ -24,9 +24,9 @@ public class KernelWorkflowExtensionsTests
 
         // Assert
         var activities = serviceProvider.GetServices<IActivity>().ToList();
-        activities.Should().HaveCount(3);
-        activities[0].Should().BeOfType<CustomerIdentificationActivity>();
-        activities[1].Should().BeOfType<CustomerIdentificationActivity>();
-        activities[2].Should().BeOfType<DeliveryTimeEstimationActivity>();
+        activities.Count.ShouldBe(3);
+        activities[0].ShouldBeOfType<CustomerIdentificationActivity>();
+        activities[1].ShouldBeOfType<CustomerIdentificationActivity>();
+        activities[2].ShouldBeOfType<DeliveryTimeEstimationActivity>();
     }
 }
