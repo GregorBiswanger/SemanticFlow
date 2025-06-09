@@ -1,11 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel.ChatCompletion;
 using SemanticFlow.Interfaces;
 
 namespace SemanticFlow.Builders;
 
-public class KernelWorkflowBuilderThen(IServiceCollection services, ILogger<KernelWorkflowBuilderThen>? logger)
+public class KernelWorkflowBuilderThen(IServiceCollection services, string name)
 {
     /// <summary>
     /// Registers the specified activity type as the next step in the workflow state machine,
@@ -17,21 +15,7 @@ public class KernelWorkflowBuilderThen(IServiceCollection services, ILogger<Kern
     /// <returns>The current <see cref="KernelWorkflowBuilderThen"/> instance to enable further chaining of workflow steps.</returns>
     public KernelWorkflowBuilderThen Then<TActivity>() where TActivity : class, IActivity
     {
-        logger?.LogTrace("Registering the activity {ActivityType} as the next step in the workflow.", typeof(TActivity).Name);
-
-        try
-        {
-            services.AddTransient<TActivity>();
-            logger?.LogDebug("Registered {ActivityType} as a transient service.", typeof(TActivity).Name);
-
-            services.AddTransient<IActivity, TActivity>();
-            logger?.LogDebug("Registered {ActivityType} as a transient implementation of IActivity.", typeof(TActivity).Name);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "An error occurred while registering the next activity {ActivityType}.", typeof(TActivity).Name);
-            throw;
-        }
+        WorkflowRegistration.RegisterActivity<TActivity>(services, name);
 
         return this;
     }
@@ -46,20 +30,7 @@ public class KernelWorkflowBuilderThen(IServiceCollection services, ILogger<Kern
     /// <typeparam name="TActivity">The type of the activity to register. Must implement <see cref="IActivity"/>.</typeparam>
     public void EndsWith<TActivity>() where TActivity : class, IActivity
     {
-        logger?.LogTrace("Registering the activity {ActivityType} as the final step in the workflow.", typeof(TActivity).Name);
 
-        try
-        {
-            services.AddTransient<TActivity>();
-            logger?.LogDebug("Registered {ActivityType} as a transient service.", typeof(TActivity).Name);
-
-            services.AddTransient<IActivity, TActivity>();
-            logger?.LogDebug("Registered {ActivityType} as a transient implementation of IActivity.", typeof(TActivity).Name);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "An error occurred while registering the final activity {ActivityType}.", typeof(TActivity).Name);
-            throw;
-        }
+        WorkflowRegistration.RegisterActivity<TActivity>(services, name);
     }
 }

@@ -34,6 +34,12 @@ public class WorkflowState
     public int WorkflowCompletionCount { get; set; } = 0;
 
     /// <summary>
+    /// Gets or sets the identifier of the currently selected workflow.
+    /// Used for routing keyed service resolution and tracking workflow execution.
+    /// </summary>
+    public string CurrentWorkflowName { get; set; } = string.Empty;
+
+    /// <summary>
     /// Serializes the collected data into a JSON string format.
     /// This can be used as part of a system prompt or context for AI models to process the accumulated workflow data.
     /// </summary>

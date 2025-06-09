@@ -23,34 +23,49 @@ public class WorkflowService(IServiceProvider serviceProvider, WorkflowStateServ
 
     /// <summary>
     /// Retrieves the current activity for the specified workflow session and prepares it for execution.
-    /// If the workflow has completed all activities, it resets the workflow state and starts over.
-    /// This includes registering the activity's methods as functions in the Semantic Kernel.
+    /// If no workflow is active, a routing activity is selected and registered.
+    /// If the end of the workflow is reached, the workflow state is reset for the next invocation.
+    /// The selected activity's methods are registered as functions in the Semantic Kernel.
     /// </summary>
-    /// <param name="id">The unique identifier for the workflow session.</param>
-    /// <param name="kernel">The Semantic Kernel instance to use for registering activity functions.</param>
+    /// <param name="id">The unique identifier of the workflow session.</param>
+    /// <param name="kernel">The Semantic Kernel instance used to register activity functions.</param>
     /// <returns>
-    /// The current activity to be executed, or <c>null</c> if no activities are registered.
+    /// The activity to be executed. Returns a routing activity if no workflow has been started yet.
+    /// Throws an <see cref="InvalidOperationException"/> if no activities are registered for the workflow.
     /// </returns>
     public IActivity? GetCurrentActivity(string id, Kernel kernel)
     {
         logger?.LogInformation("Fetching current activity for workflow session {WorkflowId}", id);
 
         var workflowState = WorkflowState.DataFrom(id);
-        var registeredActivities = serviceProvider.GetServices<IActivity>().ToList();
 
-        if (registeredActivities.Count == 0)
+        if (ShouldUseRoutingActivity(workflowState))
         {
-            return null;
+            workflowState.CurrentWorkflowName = "semantic-router";
+
+            var routingActivity = serviceProvider.GetKeyedService<IActivity>(KernelWorkflowExtensions.SEMANTIC_ROUTER_KEY);
+            kernel.AddFromActivity(routingActivity);
+
+            logger?.LogDebug("Routing activity {ActivityName} returned for workflow session {WorkflowId}", routingActivity.GetType().Name, id);
+
+            return routingActivity;
         }
 
-        if (workflowState.CurrentActivityIndex >= registeredActivities.Count)
-        {
-            logger?.LogWarning("Workflow {WorkflowId} is complete. No more activities. The workflow will start over and all collected data will be reset.", id);
+        var activities = GetActivitiesForWorkflow(workflowState.CurrentWorkflowName).ToList();
 
+        if (activities.Count == 0)
+        {
+            logger?.LogWarning("No activities found for workflow '{Workflow}' in session {WorkflowId}", workflowState.CurrentWorkflowName, id);
+            throw new InvalidOperationException($"No activities found for workflow '{workflowState.CurrentWorkflowName}' in session {id}");
+        }
+
+        if (IsReachedTheEndOfActivities(workflowState, activities))
+        {
+            logger?.LogInformation("Workflow {WorkflowId} is complete. Resetting workflow state.", id);
             workflowState.Reset();
         }
 
-        var activity = registeredActivities[workflowState.CurrentActivityIndex];
+        var activity = activities[workflowState.CurrentActivityIndex];
         kernel.AddFromActivity(activity);
 
         logger?.LogDebug("Returning activity {ActivityName} for workflow session {WorkflowId}", activity.GetType().Name, id);
@@ -58,6 +73,27 @@ public class WorkflowService(IServiceProvider serviceProvider, WorkflowStateServ
         return activity;
     }
 
+    private bool ShouldUseRoutingActivity(WorkflowState workflowState)
+    {
+        var routingActivity = serviceProvider.GetKeyedService<IActivity>(KernelWorkflowExtensions.SEMANTIC_ROUTER_KEY);
+
+        if (workflowState.CurrentWorkflowName == "semantic-router")
+        {
+            return true;
+        }
+
+        return workflowState.CurrentWorkflowName == string.Empty && routingActivity != null;
+    }
+
+    private IEnumerable<IActivity> GetActivitiesForWorkflow(string workflowKey)
+    {
+        return string.IsNullOrWhiteSpace(workflowKey) ? serviceProvider.GetServices<IActivity>() : serviceProvider.GetKeyedServices<IActivity>(workflowKey);
+    }
+
+    private bool IsReachedTheEndOfActivities(WorkflowState workflowState, IList<IActivity> activities)
+    {
+        return workflowState.CurrentActivityIndex >= activities.Count;
+    }
 
     /// <summary>
     /// Completes the current activity for the specified workflow session without providing additional data
@@ -198,4 +234,59 @@ public class WorkflowService(IServiceProvider serviceProvider, WorkflowStateServ
         return !IsWorkflowActiveFor(id);
     }
 
+    /// <summary>
+    /// Activates the specified workflow for the given session by resetting its state and setting the new workflow name.
+    /// After the update, the current activity of the workflow is resolved and returned via <see cref="GetCurrentActivity"/>.
+    /// </summary>
+    /// <param name="id">The unique identifier of the workflow session.</param>
+    /// <param name="workflowName">The name of the workflow to activate.</param>
+    /// <param name="kernel">The Semantic Kernel instance used to register activity functions.</param>
+    /// <returns>
+    /// The first activity of the specified workflow, or <c>null</c> if the workflow has no registered activities.
+    /// </returns>
+    /// <exception cref="Exception">
+    /// Propagates any exception that occurs during workflow state update or activity resolution.
+    /// </exception>
+    public IActivity UseWorkflow(string id, string workflowName, Kernel kernel)
+    {
+        logger?.LogInformation("Activating workflow '{WorkflowName}' for session {WorkflowId}", workflowName, id);
+
+        var activity = UpdateWorkflowState(
+            id,
+            kernel,
+            workflowState =>
+            {
+                workflowState.Reset();
+                workflowState.CurrentWorkflowName = workflowName;
+            },
+            $"Failed to activate workflow '{workflowName}' for session '{id}'."
+        );
+
+        return activity;
+    }
+
+    public IActivity GoToRouting(string id, Kernel kernel)
+    {
+        logger?.LogInformation("Activating Semantic Routing for session {id}", id);
+
+        var routingActivity = serviceProvider.GetKeyedService<IActivity>(KernelWorkflowExtensions.SEMANTIC_ROUTER_KEY);
+
+        if (routingActivity == null)
+        {
+            throw new InvalidOperationException("No Semantic Route is configuraed. Plase add an Activity as Semantic Router with services.AddSemanticRouter<RouterActivity>();");
+        }
+
+        var activity = UpdateWorkflowState(
+            id,
+            kernel,
+            workflowState =>
+            {
+                workflowState.Reset();
+                workflowState.CurrentWorkflowName = string.Empty;
+            },
+            $"Failed to activate Semantic Routing for session '{id}'."
+        );
+
+        return activity;
+    }
 }

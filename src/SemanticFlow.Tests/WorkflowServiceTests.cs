@@ -112,10 +112,14 @@ public class WorkflowServiceTests
         var sessionId = "empty-workflow";
 
         // Act
-        var currentActivity = workflowService.GetCurrentActivity(sessionId, kernel);
+        Action action = () =>
+        {
+            workflowService.GetCurrentActivity(sessionId, kernel);
+        };
 
         // Assert
-        currentActivity.ShouldBeNull();
+        var exception = Should.Throw<InvalidOperationException>(action);
+        exception.Message.ShouldBe($"No activities found for workflow '' in session empty-workflow");
     }
 
     [Fact]

@@ -1,10 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using SemanticFlow.Interfaces;
 
 namespace SemanticFlow.Builders;
 
-public class KernelWorkflowBuilderStart(IServiceCollection services, ILogger<KernelWorkflowBuilderStart>? logger)
+public class KernelWorkflowBuilderStart(IServiceCollection services, string name)
 {
     /// <summary>
     /// Registers the specified activity type as the starting point of the workflow state machine,
@@ -17,24 +16,8 @@ public class KernelWorkflowBuilderStart(IServiceCollection services, ILogger<Ker
     /// <returns>A new instance of <see cref="KernelWorkflowBuilderThen"/> to enable chaining of subsequent workflow steps.</returns>
     public KernelWorkflowBuilderThen StartWith<TActivity>() where TActivity : class, IActivity
     {
-        logger?.LogTrace("Registering the activity {ActivityType} as the starting point of the workflow.", typeof(TActivity).Name);
+        WorkflowRegistration.RegisterActivity<TActivity>(services, name);
 
-        try
-        {
-            services.AddTransient<TActivity>();
-            logger?.LogDebug("Registered {ActivityType} as a transient service.", typeof(TActivity).Name);
-
-            services.AddTransient<IActivity, TActivity>();
-            logger?.LogDebug("Registered {ActivityType} as a transient implementation of IActivity.", typeof(TActivity).Name);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "An error occurred while registering the starting activity {ActivityType}.", typeof(TActivity).Name);
-            throw;
-        }
-
-        logger?.LogTrace("First Activity {ActivityType}", typeof(TActivity).Name);
-
-        return new KernelWorkflowBuilderThen(services, services.BuildServiceProvider().GetService<ILogger<KernelWorkflowBuilderThen>>());
+        return new KernelWorkflowBuilderThen(services, name);
     }
 }
