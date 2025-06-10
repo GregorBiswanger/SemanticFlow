@@ -1,26 +1,22 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Azure.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using OllamaApiFacade.Extensions;
-using SemanticFlow.DemoConsoleApp;
 using SemanticFlow.DemoConsoleApp.Services;
 using SemanticFlow.DemoConsoleApp.Workflow;
 using SemanticFlow.Extensions;
 using SemanticFlow.Services;
-using ChatMessageContent = Microsoft.SemanticKernel.ChatMessageContent;
 
-const string keyVaultUrl = "https://ai-rag-workshop.vault.azure.net/";
-var azureKeyVaultHelper = new AzureKeyVaultHelper(keyVaultUrl);
-var azureOpenAiApiKey = await azureKeyVaultHelper.GetSecretAsync("AZURE-OPENAI-API-KEY");
 var azureOpenAiEndpoint = "https://ai-rag-workshop.openai.azure.com";
-var azureOpenAiDeploymentNameGpt4 = "gpt-4";
+var azureOpenAiDeploymentNameGpt4oMini = "gpt-4o-mini";
 var azureOpenAiDeploymentNameGpt35 = "gpt-35-turbo";
 
 var builder = Kernel.CreateBuilder();
 
 builder.Services.AddKernel()
-    .AddAzureOpenAIChatCompletion(azureOpenAiDeploymentNameGpt4, azureOpenAiEndpoint, azureOpenAiApiKey, modelId: "gpt-4")
-    .AddAzureOpenAIChatCompletion(azureOpenAiDeploymentNameGpt35, azureOpenAiEndpoint, azureOpenAiApiKey, modelId: "gpt-35-turbo");
+    .AddAzureOpenAIChatCompletion(azureOpenAiDeploymentNameGpt4oMini, azureOpenAiEndpoint, new DefaultAzureCredential(), modelId: "gpt-4o-mini")
+    .AddAzureOpenAIChatCompletion(azureOpenAiDeploymentNameGpt35, azureOpenAiEndpoint, new DefaultAzureCredential(), modelId: "gpt-35-turbo");
 
 builder.Services.AddLogging();
 builder.Services.AddTransient<SessionService>();
@@ -40,20 +36,23 @@ var sessionService = kernel.GetRequiredService<SessionService>();
 var id = sessionService.GetId();
 
 var workflowService = kernel.GetRequiredService<WorkflowService>();
-var chatHistory = new ChatHistory("Blank System Prompt");
+var chatHistory = new ChatHistory("Init system prompt");
 
 while (true)
 {
-    var currentActivity = workflowService.GetCurrentActivity(id, kernel);
+    // Necessary for this stateful example
+    var kernelClone = kernel.Clone();
+
+    var currentActivity = workflowService.GetCurrentActivity(id, kernelClone);
 
     var systemPrompt = currentActivity.SystemPrompt + " ### " +
                        workflowService.WorkflowState.DataFrom(id).ToPromptString();
 
     var systemChatMessage = new ChatMessageContent(AuthorRole.System, systemPrompt);
     chatHistory[0] = systemChatMessage;
-
+    
     Console.ForegroundColor = ConsoleColor.Cyan;
-    Console.Write("Du: ");
+    Console.Write("You: ");
     string userInput = Console.ReadLine();
     chatHistory.AddUserMessage(userInput);
     Console.ResetColor();
@@ -61,13 +60,13 @@ while (true)
     if (userInput?.ToLower() == "exit")
         break;
 
-    var chatCompletions = await kernel.GetChatCompletionForActivity(currentActivity)
-        .GetChatMessageContentsAsync(chatHistory, currentActivity.PromptExecutionSettings, kernel);
+    var chatCompletions = await kernelClone.GetChatCompletionForActivity(currentActivity)
+        .GetChatMessageContentsAsync(new ChatHistory(chatHistory), currentActivity.PromptExecutionSettings, kernelClone);
 
     var chatResponse = chatCompletions.First().ToChatResponse();
     chatHistory.AddAssistantMessage(chatResponse.Message.Content);
-    
+
     Console.ForegroundColor = ConsoleColor.Green;
-    Console.WriteLine($"KI: {chatResponse.Message.Content}");
+    Console.WriteLine($"AI Pizza dealer: {chatResponse.Message.Content}");
     Console.ResetColor();
 }

@@ -1,6 +1,6 @@
+using Azure.Identity;
 using Microsoft.SemanticKernel;
 using OllamaApiFacade.Extensions;
-using SemanticFlow.DemoWebApi;
 using SemanticFlow.DemoWebApi.Workflow;
 using SemanticFlow.Extensions;
 using SemanticFlow.Services;
@@ -9,23 +9,22 @@ var builder = WebApplication.CreateBuilder(args)
     .ConfigureAsLocalOllamaApi();
 
 var configuration = builder.Configuration;
-var keyVaultName = configuration["KeyVault:Name"];
-var keyVaultUrl = $"https://{keyVaultName}.vault.azure.net";
-var azureKeyVaultHelper = new AzureKeyVaultHelper(keyVaultUrl);
-var azureOpenAiApiKey = await azureKeyVaultHelper.GetSecretAsync("AZURE-OPENAI-API-KEY");
 var azureOpenAiEndpoint = configuration["AzureOpenAI:Endpoint"];
-var azureOpenAiDeploymentNameGpt4 = configuration["AzureOpenAI:DeploymentNameGpt4"];
+var azureOpenAiDeploymentNameGpt4 = configuration["AzureOpenAI:DeploymentNameGpt4oMini"];
 var azureOpenAiDeploymentNameGpt35 = configuration["AzureOpenAI:DeploymentNameGpt35"];
 
 builder.Services.AddKernel()
-    .AddAzureOpenAIChatCompletion(azureOpenAiDeploymentNameGpt4, azureOpenAiEndpoint, azureOpenAiApiKey, modelId: "gpt-4")
-    .AddAzureOpenAIChatCompletion(azureOpenAiDeploymentNameGpt35, azureOpenAiEndpoint, azureOpenAiApiKey, modelId: "gpt-35-turbo");
+    .AddAzureOpenAIChatCompletion(azureOpenAiDeploymentNameGpt4, azureOpenAiEndpoint, new DefaultAzureCredential(), modelId: "gpt-4o-mini")
+    .AddAzureOpenAIChatCompletion(azureOpenAiDeploymentNameGpt35, azureOpenAiEndpoint, new DefaultAzureCredential(), modelId: "gpt-35-turbo");
 
 builder.Services.AddKernelWorkflow()
     .StartWith<CustomerIdentificationActivity>()
     .Then<MenuSelectionActivity>()
     .Then<PaymentProcessingActivity>()
     .EndsWith<OrderConfirmationActivity>();
+
+// Analyze with Burp Suite the Semantic Kernel backend communication
+//builder.Services.AddProxyForDebug();
 
 var app = builder.Build();
 

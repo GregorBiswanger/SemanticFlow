@@ -8,7 +8,7 @@ public class SessionService
 
     public SessionService()
     {
-        _id = Process.GetCurrentProcess().Id.ToString(); // Prozess-ID als String
+        _id = Process.GetCurrentProcess().Id.ToString();
     }
 
     public string GetId()

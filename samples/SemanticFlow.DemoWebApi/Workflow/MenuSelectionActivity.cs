@@ -29,7 +29,7 @@ public class MenuSelectionActivity(IHttpContextAccessor httpContextAccessor,
     public string SystemPrompt { get; set; } = File.ReadAllText("./Workflow/MenuSelectionActivity.SystemPrompt.txt");
     public PromptExecutionSettings PromptExecutionSettings { get; set; } = new AzureOpenAIPromptExecutionSettings
     {
-        ModelId = "gpt-4",
+        ModelId = "gpt-4o-mini",
         FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
         Temperature = 0.1,
         MaxTokens = 256
