@@ -62,7 +62,7 @@ In this demo, the **ASP.NET Core Web API** acts as an Ollama API Server using [*
 
 ### 3. Configuring the Semantic Kernel
 
-Configure the Semantic Kernel in the `Program.cs` file by adding or adjusting the appropriate connectors. An example is provided in the [Program.cs](https://github.com/GregorBiswanger/SemanticFlow/blob/main/SemanticFlow.DemoWebApi/Program.cs).
+Configure the Semantic Kernel in the `Program.cs` file by adding or adjusting the appropriate connectors. An example is provided in the [Program.cs](https://github.com/GregorBiswanger/SemanticFlow/blob/main/samples/SemanticFlow.DemoWebApi/Program.cs).
 
 > **Important:** Ensure the `ModelID` is set correctly in the code and in the activities folder within the workflow.
 
@@ -80,10 +80,8 @@ The `Program.cs` file in your ASP.NET Core 8 application sets up key services an
 The Semantic Kernel is configured to interact with Azure OpenAI services. Keys and endpoints are retrieved from Azure Key Vault as follows:
 
 ```csharp
-var azureKeyVaultHelper = new AzureKeyVaultHelper(keyVaultUrl);
-var azureOpenAiApiKey = await azureKeyVaultHelper.GetSecretAsync("AZURE-OPENAI-API-KEY");
 var azureOpenAiEndpoint = configuration["AzureOpenAI:Endpoint"];
-var azureOpenAiDeploymentNameGpt4 = configuration["AzureOpenAI:DeploymentNameGpt4"];
+var azureOpenAiDeploymentNameGpt4 = configuration["AzureOpenAI:DeploymentNameGpt4oMini"];
 var azureOpenAiDeploymentNameGpt35 = configuration["AzureOpenAI:DeploymentNameGpt35"];
 ```
 
@@ -91,8 +89,8 @@ The Azure OpenAI Chat Completion services are then registered with the Semantic 
 
 ```csharp
 builder.Services.AddKernel()
-    .AddAzureOpenAIChatCompletion(azureOpenAiDeploymentNameGpt4, azureOpenAiEndpoint, azureOpenAiApiKey, modelId: "gpt-4")
-    .AddAzureOpenAIChatCompletion(azureOpenAiDeploymentNameGpt35, azureOpenAiEndpoint, azureOpenAiApiKey, modelId: "gpt-35-turbo");
+    .AddAzureOpenAIChatCompletion(azureOpenAiDeploymentNameGpt4, azureOpenAiEndpoint, new DefaultAzureCredential(), modelId: "gpt-4")
+    .AddAzureOpenAIChatCompletion(azureOpenAiDeploymentNameGpt35, azureOpenAiEndpoint, new DefaultAzureCredential(), modelId: "gpt-35-turbo");
 ```
 
 ### 🛠 Registering the Pizza Order Workflow with Semantic Flow
