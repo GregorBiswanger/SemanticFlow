@@ -4,8 +4,6 @@ This demo showcases the capabilities of **Semantic Flow** for orchestrating gene
 
 Built with **ASP.NET Core 8**, **Docker**, and the **Microsoft Semantic Kernel**, this demo dynamically chooses between multiple workflows: *pizza ordering* or *customer support*.
 
----
-
 ## 🛠 Prerequisites
 
 Make sure you have the following tools installed:
@@ -13,8 +11,6 @@ Make sure you have the following tools installed:
 * **ASP.NET Core 8 SDK** ([Download](https://dotnet.microsoft.com/download))
 * **Docker** ([Download](https://www.docker.com/))
 * Access to **Azure AI / Azure OpenAI** or **OpenAI API**
-
----
 
 ## 🧑‍💻 Installation and Setup
 
@@ -28,13 +24,9 @@ docker run -d -p 3000:8080 --add-host=host.docker.internal:host-gateway --name o
 
 For metadata support, install the custom **Ollama API Facade Metadata** function via the Admin Panel, as described in the [official guide](https://openwebui.com/f/gregorbiswanger/ollama_api_facade_metadata/).
 
----
-
 ### 2️. ASP.NET Core Web API as Ollama API Server
 
 This project uses [**OllamaApiFacade**](https://github.com/GregorBiswanger/OllamaApiFacade) to handle Open WebUI requests in .NET.
-
----
 
 ### 3. Kernel Configuration
 
@@ -45,8 +37,6 @@ builder.Services.AddKernel()
     .AddAzureOpenAIChatCompletion("gpt-4o-mini", endpoint, credentials, modelId: "gpt-4o-mini")
     .AddAzureOpenAIChatCompletion("gpt-35-turbo", endpoint, credentials, modelId: "gpt-35-turbo");
 ```
-
----
 
 ## 🧭 Semantic Routing with RouterActivity
 
@@ -114,9 +104,7 @@ builder.Services.AddKernelWorkflow("support")
 
 ### 🧩 Visual Overview
 
-![Semantic Routing Workflow](./assets/semantic-flow-semantic-routing-support.png)
-
----
+![Semantic Routing Workflow](https://github.com/GregorBiswanger/SemanticFlow/blob/main/assets/semantic-flow-semantic-routing-support.png?raw=true)
 
 ## 🚀 Starting the Project
 
@@ -127,25 +115,17 @@ builder.Services.AddKernelWorkflow("support")
   * "Where is my order?"
 * The system will semantically route your request and proceed with the appropriate workflow.
 
----
-
 ## ▶️ Pizza Order Workflow Details
 
 Includes: `CustomerIdentificationActivity`, `MenuSelectionActivity`, `PaymentProcessingActivity`, and `OrderConfirmationActivity`.
-
----
 
 ## 🛠 Support Workflow Details
 
 Includes: `IssueClassificationActivity` and `CheckOrderStatusActivity`, supported by sample order data and context preservation.
 
----
-
 ## 💬 Contribution and Contact
 
 This project is a demonstration of **Semantic Flow**. For questions or issues, please use the **GitHub Issues** section.
-
----
 
 ## 📜 License
 
