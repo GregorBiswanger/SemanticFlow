@@ -147,6 +147,88 @@ Try out Semantic Flow with our demo app:
 
 Explore how Semantic Flow simplifies real-world AI tasks with a Pizza Order Workflow demo - from customer identification to order confirmation, every step is streamlined.
 
+## 🧭 Semantic Routing Support
+
+Semantic Flow now includes built-in support for **semantic routing** across multiple workflows. This allows you to dynamically route user intents to different process flows based on natural language understanding.
+
+### 🔄 Example Scenario
+
+Imagine a support assistant that should either:
+
+- start a pizza order, or
+- handle customer service inquiries (like checking an order)
+
+This is where `RouterActivity` comes in.
+
+### 🖼️ Visual Overview
+
+![Semantic Routing Workflow](https://github.com/GregorBiswanger/SemanticFlow/raw/main/assets/semantic-flow-semantic-routing-support.png)
+
+The diagram shows how Semantic Flow intelligently chooses between different workflows.
+
+### 🧱 Setup in Program.cs
+
+```csharp
+builder.Services.AddSemanticRouter<RouterActivity>();
+
+builder.Services.AddKernelWorkflow("pizzaOrder")
+    .StartWith<CustomerIdentificationActivity>()
+    .Then<MenuSelectionActivity>()
+    .Then<PaymentProcessingActivity>()
+    .EndsWith<OrderConfirmationActivity>();
+
+builder.Services.AddKernelWorkflow("support")
+    .StartWith<IssueClassificationActivity>()
+    .EndsWith<CheckOrderStatusActivity>();
+```
+
+### 💡 What is `RouterActivity`?
+
+The `RouterActivity` handles natural language intent classification and forwards the conversation to the correct workflow.
+
+```csharp
+public class RouterActivity(
+    IHttpContextAccessor httpContextAccessor,
+    WorkflowService workflowService,
+    Kernel kernel) : IActivity
+{
+    public string SystemPrompt { get; set; } = File.ReadAllText("./Workflows/RouterActivity.SystemPrompt.txt");
+
+    public PromptExecutionSettings PromptExecutionSettings { get; set; } = new AzureOpenAIPromptExecutionSettings
+    {
+        ModelId = "gpt-4o-mini",
+        FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
+        Temperature = 0.5,
+        MaxTokens = 256
+    };
+
+    [KernelFunction]
+    [Description("Starts the order process if the user wants to place a pizza order.")]
+    public string RouteToPizzaOrder()
+    {
+        var chatId = httpContextAccessor.HttpContext?.GetChatRequest().ChatId;
+        var next = workflowService.UseWorkflow(chatId, "pizzaOrder", kernel);
+        
+        return @$"{next.SystemPrompt} ### {workflowService.WorkflowState.DataFrom(chatId).ToPromptString()}";
+    }
+
+    [KernelFunction]
+    [Description("Starts the support process if the user has an issue or question about a previous order.")]
+    public string RouteToSupport()
+    {
+        var chatId = httpContextAccessor.HttpContext?.GetChatRequest().ChatId;
+        var next = workflowService.UseWorkflow(chatId, "support", kernel);
+        
+        return @$"{next.SystemPrompt} ### {workflowService.WorkflowState.DataFrom(chatId).ToPromptString()}";
+    }
+}
+```
+
+### 📂 Full Sample
+
+You can explore the complete routing demo in:
+📁 [`samples/SemanticFlow.DemoSemanticRouting`](https://github.com/GregorBiswanger/SemanticFlow/tree/main/samples/SemanticFlow.DemoSemanticRouting)
+
 ## ✨ Key Features
 
 - 🧠 **State Management:** Automatically tracks progress and data.  
@@ -182,7 +264,7 @@ Your sponsorship allows me to invest more time in improving the project and prio
 
 ## 📜 License
 
-This project is licensed under the [**Apache License 2.0**](https://raw.githubusercontent.com/GregorBiswanger/SemanticFlow/refs/heads/main/LICENSE.txt) - © Gregor Biswanger 2024
+This project is licensed under the [**Apache License 2.0**](https://raw.githubusercontent.com/GregorBiswanger/SemanticFlow/refs/heads/main/LICENSE.txt) - © Gregor Biswanger 2024-2025
 
 ## 🌟 Get Started Now
 
