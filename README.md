@@ -145,6 +145,12 @@ var nextActivity = workflowService.CompleteActivity("session-id", dataFromUser, 
 Try out Semantic Flow with our demo app:  
 **[SemanticFlow.DemoWebApi](https://github.com/GregorBiswanger/SemanticFlow/tree/main/samples/SemanticFlow.DemoWebApi)**
 
+Semantic Flow demo app with Semantic Routing:  
+**[SemanticFlow.DemoSemanticRouting](https://github.com/GregorBiswanger/SemanticFlow/tree/main/samples/SemanticFlow.DemoSemanticRouting)**
+
+Semantic Flow demo app with Statefull-Environment:  
+**[SemanticFlow.DemoConsoleApp](https://github.com/GregorBiswanger/SemanticFlow/tree/main/samples/SemanticFlow.DemoConsoleApp)**
+
 Explore how Semantic Flow simplifies real-world AI tasks with a Pizza Order Workflow demo - from customer identification to order confirmation, every step is streamlined.
 
 ## 🧭 Semantic Routing Support
