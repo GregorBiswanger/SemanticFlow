@@ -34,7 +34,7 @@ builder.Services.AddKernelWorkflow("support")
     .EndsWith<CheckOrderStatusActivity>();
 
 // Analyze with Burp Suite the Semantic Kernel backend communication
-builder.Services.AddProxyForDebug();
+//builder.Services.AddProxyForDebug();
 
 var app = builder.Build();
 
