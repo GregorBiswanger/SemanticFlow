@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticFlow.DemoWebApi", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticFlow.DemoConsoleApp", "samples\SemanticFlow.DemoConsoleApp\SemanticFlow.DemoConsoleApp.csproj", "{DC7CE9B4-396C-4EE3-A54F-D35134628C51}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticFlow.DemoSemanticRouting", "samples\SemanticFlow.DemoSemanticRouting\SemanticFlow.DemoSemanticRouting.csproj", "{9DCF0E49-6E76-8880-5E35-99FACC4C8DC6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,8 +37,20 @@ Global
 		{DC7CE9B4-396C-4EE3-A54F-D35134628C51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC7CE9B4-396C-4EE3-A54F-D35134628C51}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC7CE9B4-396C-4EE3-A54F-D35134628C51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DCF0E49-6E76-8880-5E35-99FACC4C8DC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DCF0E49-6E76-8880-5E35-99FACC4C8DC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DCF0E49-6E76-8880-5E35-99FACC4C8DC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DCF0E49-6E76-8880-5E35-99FACC4C8DC6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A9CC60D4-98AB-419E-931C-C462AA2E61CB} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{DC7CE9B4-396C-4EE3-A54F-D35134628C51} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{9DCF0E49-6E76-8880-5E35-99FACC4C8DC6} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {60814054-1B20-4E62-A677-A1EF982E2C56}
 	EndGlobalSection
 EndGlobal
